@@ -1,0 +1,143 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/CombatScene.cs" id="1_7vd0r"]
+
+[node name="CombatScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_7vd0r")
+
+[node name="Background_Dungeon" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.121569, 0.109804, 0.145098, 1)
+
+[node name="VBox_MainLayout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 18
+
+[node name="Row1_BossArea" type="HBoxContainer" parent="VBox_MainLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Margin_Boss" type="MarginContainer" parent="VBox_MainLayout/Row1_BossArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBox_BossStats" type="VBoxContainer" parent="VBox_MainLayout/Row1_BossArea/Margin_Boss"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label_BossName" type="Label" parent="VBox_MainLayout/Row1_BossArea/Margin_Boss/VBox_BossStats"]
+layout_mode = 2
+text = "LEVEL 1 BOSS"
+
+[node name="ProgressBar_BossHP" type="ProgressBar" parent="VBox_MainLayout/Row1_BossArea/Margin_Boss/VBox_BossStats"]
+custom_minimum_size = Vector2(320, 28)
+layout_mode = 2
+max_value = 40.0
+value = 40.0
+
+[node name="BossSpriteAnchor" type="CenterContainer" parent="VBox_MainLayout/Row1_BossArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Sprite_Boss" type="ColorRect" parent="VBox_MainLayout/Row1_BossArea/BossSpriteAnchor"]
+custom_minimum_size = Vector2(220, 220)
+layout_mode = 2
+color = Color(0.576471, 0.235294, 0.215686, 1)
+
+[node name="Row2_PlayerArea" type="HBoxContainer" parent="VBox_MainLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PlayerSpriteAnchor" type="CenterContainer" parent="VBox_MainLayout/Row2_PlayerArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Sprite_Player" type="ColorRect" parent="VBox_MainLayout/Row2_PlayerArea/PlayerSpriteAnchor"]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+color = Color(0.235294, 0.501961, 0.643137, 1)
+
+[node name="Margin_Player" type="MarginContainer" parent="VBox_MainLayout/Row2_PlayerArea"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBox_PlayerStats" type="VBoxContainer" parent="VBox_MainLayout/Row2_PlayerArea/Margin_Player"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label_PlayerName" type="Label" parent="VBox_MainLayout/Row2_PlayerArea/Margin_Player/VBox_PlayerStats"]
+layout_mode = 2
+text = "PLAYER (YOU)"
+
+[node name="ProgressBar_PlayerHP" type="ProgressBar" parent="VBox_MainLayout/Row2_PlayerArea/Margin_Player/VBox_PlayerStats"]
+custom_minimum_size = Vector2(320, 28)
+layout_mode = 2
+max_value = 30.0
+value = 30.0
+
+[node name="Label_Intent" type="Label" parent="VBox_MainLayout/Row2_PlayerArea/Margin_Player/VBox_PlayerStats"]
+layout_mode = 2
+text = "Boss Intent: Deal 5 damage"
+
+[node name="Row3_CardHand" type="MarginContainer" parent="VBox_MainLayout"]
+custom_minimum_size = Vector2(0, 220)
+layout_mode = 2
+
+[node name="Panel_HandBackground" type="PanelContainer" parent="VBox_MainLayout/Row3_CardHand"]
+layout_mode = 2
+
+[node name="VBox_HandLayout" type="VBoxContainer" parent="VBox_MainLayout/Row3_CardHand/Panel_HandBackground"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HBox_Hand" type="HBoxContainer" parent="VBox_MainLayout/Row3_CardHand/Panel_HandBackground/VBox_HandLayout"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 14
+
+[node name="Card_Slot_1" type="Button" parent="VBox_MainLayout/Row3_CardHand/Panel_HandBackground/VBox_HandLayout/HBox_Hand"]
+custom_minimum_size = Vector2(210, 110)
+layout_mode = 2
+text = "No card loaded"
+
+[node name="Card_Slot_2" type="Button" parent="VBox_MainLayout/Row3_CardHand/Panel_HandBackground/VBox_HandLayout/HBox_Hand"]
+custom_minimum_size = Vector2(210, 110)
+layout_mode = 2
+text = "No card loaded"
+
+[node name="Card_Slot_3" type="Button" parent="VBox_MainLayout/Row3_CardHand/Panel_HandBackground/VBox_HandLayout/HBox_Hand"]
+custom_minimum_size = Vector2(210, 110)
+layout_mode = 2
+text = "No card loaded"
+
+[node name="Label_Log" type="Label" parent="VBox_MainLayout/Row3_CardHand/Panel_HandBackground/VBox_HandLayout"]
+layout_mode = 2
+text = "Play the card from your fishing round."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="ContinueButton" type="Button" parent="VBox_MainLayout/Row3_CardHand/Panel_HandBackground/VBox_HandLayout"]
+custom_minimum_size = Vector2(180, 44)
+layout_mode = 2
+text = "Continue"
+disabled = true
