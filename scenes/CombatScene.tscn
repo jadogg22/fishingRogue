@@ -55,6 +55,11 @@ layout_mode = 2
 max_value = 40.0
 value = 40.0
 
+[node name="Label_BossStatus" type="Label" parent="VBox_MainLayout/Row1_BossArea/Margin_Boss/VBox_BossStats"]
+layout_mode = 2
+text = "No status effects"
+autowrap_mode = 2
+
 [node name="BossSpriteAnchor" type="CenterContainer" parent="VBox_MainLayout/Row1_BossArea"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -98,6 +103,11 @@ value = 30.0
 [node name="Label_Intent" type="Label" parent="VBox_MainLayout/Row2_PlayerArea/Margin_Player/VBox_PlayerStats"]
 layout_mode = 2
 text = "Boss Intent: Deal 5 damage"
+
+[node name="Label_PlayerStatus" type="Label" parent="VBox_MainLayout/Row2_PlayerArea/Margin_Player/VBox_PlayerStats"]
+layout_mode = 2
+text = "No status effects"
+autowrap_mode = 2
 
 [node name="Row3_CardHand" type="MarginContainer" parent="VBox_MainLayout"]
 custom_minimum_size = Vector2(0, 220)

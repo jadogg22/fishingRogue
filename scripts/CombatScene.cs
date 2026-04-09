@@ -1,5 +1,6 @@
 using Godot;
 using Godot.Collections;
+using System.Collections.Generic;
 
 public partial class CombatScene : Control
 {
@@ -9,17 +10,19 @@ public partial class CombatScene : Control
     private const int BossDamage = 5;
     private const int MaxHandSize = 3;
 
-    private Array<Dictionary> _currentHand = new();
+    private readonly List<CardData> _currentHand = new();
+    private PlayerStateManager? _playerState;
+    private EnemyStateManager? _enemyState;
     private Dictionary _pendingResult = new()
     {
         { "player_damage", 0 },
         { "boss_damage", 0 },
+        { "player_hp", 0 },
+        { "boss_hp", 0 },
+        { "player_statuses", new Array<Dictionary>() },
+        { "boss_statuses", new Array<Dictionary>() },
     };
     private bool _roundResolved;
-    private int _bossHpDuringRound;
-    private int _playerHpDuringRound;
-    private int _maxBossHp;
-    private int _maxPlayerHp;
 
     public override void _Ready()
     {
@@ -29,20 +32,26 @@ public partial class CombatScene : Control
         GetNode<Button>("VBox_MainLayout/Row3_CardHand/Panel_HandBackground/VBox_HandLayout/ContinueButton").Pressed += OnContinuePressed;
     }
 
-    public void SetupRound(int currentPlayerHp, int maxPlayerHp, int currentBossHp, int maxBossHp, Array<Dictionary> cardData, int battleNumber)
+    public void SetupRound(int currentPlayerHp, int maxPlayerHp, int currentBossHp, int maxBossHp, Array<Dictionary> cardData, Array<Dictionary> playerStatuses, Array<Dictionary> bossStatuses, int battleNumber)
     {
-        _currentHand = new Array<Dictionary>(cardData);
-        _bossHpDuringRound = currentBossHp;
-        _playerHpDuringRound = currentPlayerHp;
-        _maxBossHp = maxBossHp;
-        _maxPlayerHp = maxPlayerHp;
+        _currentHand.Clear();
+        foreach (var cardDictionary in cardData)
+        {
+            _currentHand.Add(CardData.FromDictionary(cardDictionary));
+        }
+
+        _playerState = new PlayerStateManager(currentPlayerHp, maxPlayerHp, playerStatuses);
+        _enemyState = new EnemyStateManager(currentBossHp, maxBossHp, BossDamage, battleNumber, bossStatuses);
 
         GetNode<Label>("VBox_MainLayout/Row1_BossArea/Margin_Boss/VBox_BossStats/Label_BossName").Text = $"LEVEL 1 BOSS  |  Battle {battleNumber}";
-        UpdateHealthBars();
+        UpdateEnemyUi();
+        UpdatePlayerUi();
         RefreshHandButtons();
 
+        GetNode<Label>("VBox_MainLayout/Row2_PlayerArea/Margin_Player/VBox_PlayerStats/Label_Intent").Text =
+            _enemyState == null ? "Boss Intent: -" : $"Boss Intent: {_enemyState.CurrentIntent.Description}";
         GetNode<Label>("VBox_MainLayout/Row3_CardHand/Panel_HandBackground/VBox_HandLayout/Label_Log").Text =
-            $"Boss intent: {BossDamage} damage. Fish three cards, then spend them here.";
+            "Fish three cards, then spend them here.";
         GetNode<Button>("VBox_MainLayout/Row3_CardHand/Panel_HandBackground/VBox_HandLayout/ContinueButton").Disabled = true;
 
         _roundResolved = false;
@@ -50,6 +59,10 @@ public partial class CombatScene : Control
         {
             { "player_damage", 0 },
             { "boss_damage", 0 },
+            { "player_hp", currentPlayerHp },
+            { "boss_hp", currentBossHp },
+            { "player_statuses", new Array<Dictionary>() },
+            { "boss_statuses", new Array<Dictionary>() },
         };
     }
 
@@ -60,49 +73,98 @@ public partial class CombatScene : Control
             return;
         }
 
+        if (_enemyState == null || _playerState == null)
+        {
+            return;
+        }
+
         if (cardIndex < 0 || cardIndex >= _currentHand.Count)
         {
             return;
         }
 
         var card = _currentHand[cardIndex];
-        var bossDamage = (int)card["damage"];
-        _bossHpDuringRound = Mathf.Max(0, _bossHpDuringRound - bossDamage);
-        _pendingResult["boss_damage"] = (int)_pendingResult["boss_damage"] + bossDamage;
-        _currentHand.RemoveAt(cardIndex);
+        var damageSummary = string.Empty;
+        var bossDamage = 0;
 
-        UpdateHealthBars();
+        if (card.Damage > 0)
+        {
+            var playerTurn = _playerState.ModifyOutgoingDamage(card.Damage);
+            damageSummary = playerTurn.Summary;
+            bossDamage = playerTurn.ActualDamage;
+
+            if (card.DamageTarget == CombatTarget.Enemy)
+            {
+                _enemyState.DealDamage(bossDamage);
+                _pendingResult["boss_damage"] = (int)_pendingResult["boss_damage"] + bossDamage;
+            }
+            else
+            {
+                _playerState.Heal(bossDamage);
+            }
+        }
+
+        _currentHand.RemoveAt(cardIndex);
+        var statusAppliedMessage = ApplyCardStatus(card);
+
+        UpdateEnemyUi();
+        UpdatePlayerUi();
         RefreshHandButtons();
 
-        if (_bossHpDuringRound <= 0)
+        if (_enemyState.CurrentHp <= 0)
         {
             _roundResolved = true;
             _pendingResult["player_damage"] = 0;
+            _pendingResult["player_hp"] = _playerState.CurrentHp;
+            _pendingResult["boss_hp"] = _enemyState.CurrentHp;
+            _pendingResult["player_statuses"] = _playerState.SerializeStatuses();
+            _pendingResult["boss_statuses"] = _enemyState.SerializeStatuses();
             GetNode<Button>("VBox_MainLayout/Row3_CardHand/Panel_HandBackground/VBox_HandLayout/ContinueButton").Disabled = false;
             GetNode<Label>("VBox_MainLayout/Row3_CardHand/Panel_HandBackground/VBox_HandLayout/Label_Log").Text =
-                $"You finished the boss with {card["name"]}.";
+                $"You finished the boss with {card.Name}.";
             return;
         }
 
+        var playSummary = $"You used {card.Name} for {bossDamage} damage.";
+        if (card.DamageTarget == CombatTarget.Player)
+        {
+            playSummary = $"You used {card.Name} to recover {bossDamage}.";
+        }
+
+        if (!string.IsNullOrEmpty(damageSummary))
+        {
+            playSummary += $" {damageSummary}.";
+        }
+
+        if (!string.IsNullOrEmpty(statusAppliedMessage))
+        {
+            playSummary += $" {statusAppliedMessage}.";
+        }
+
         GetNode<Label>("VBox_MainLayout/Row3_CardHand/Panel_HandBackground/VBox_HandLayout/Label_Log").Text =
-            $"You used {card["name"]} for {bossDamage} damage. {_currentHand.Count} card(s) left.";
+            $"{playSummary} {_currentHand.Count} card(s) left.";
 
         if (_currentHand.Count > 0)
         {
             return;
         }
 
-        _playerHpDuringRound = Mathf.Max(0, _playerHpDuringRound - BossDamage);
-        UpdateHealthBars();
+        var enemyTurn = _enemyState.ResolveTurn(_playerState);
+        UpdateEnemyUi();
+        UpdatePlayerUi();
         _pendingResult = new Dictionary
         {
-            { "player_damage", BossDamage },
+            { "player_damage", enemyTurn.OutgoingDamage },
             { "boss_damage", _pendingResult["boss_damage"] },
+            { "player_hp", _playerState.CurrentHp },
+            { "boss_hp", _enemyState.CurrentHp },
+            { "player_statuses", _playerState.SerializeStatuses() },
+            { "boss_statuses", _enemyState.SerializeStatuses() },
         };
         _roundResolved = true;
         GetNode<Button>("VBox_MainLayout/Row3_CardHand/Panel_HandBackground/VBox_HandLayout/ContinueButton").Disabled = false;
         GetNode<Label>("VBox_MainLayout/Row3_CardHand/Panel_HandBackground/VBox_HandLayout/Label_Log").Text =
-            $"Your hand is spent. The boss hits back for {BossDamage}.";
+            enemyTurn.Summary;
     }
 
     private void OnContinuePressed()
@@ -123,7 +185,7 @@ public partial class CombatScene : Control
             if (index < _currentHand.Count)
             {
                 var card = _currentHand[index];
-                button.Text = $"{card["name"]}\n{card["fish"]} | {card["damage"]} dmg";
+                button.Text = card.BuildButtonText();
                 button.Disabled = _roundResolved;
                 button.Visible = true;
             }
@@ -136,14 +198,57 @@ public partial class CombatScene : Control
         }
     }
 
-    private void UpdateHealthBars()
+    private void UpdatePlayerUi()
     {
-        var bossBar = GetNode<ProgressBar>("VBox_MainLayout/Row1_BossArea/Margin_Boss/VBox_BossStats/ProgressBar_BossHP");
-        bossBar.MaxValue = _maxBossHp;
-        bossBar.Value = _bossHpDuringRound;
+        if (_playerState == null)
+        {
+            return;
+        }
 
         var playerBar = GetNode<ProgressBar>("VBox_MainLayout/Row2_PlayerArea/Margin_Player/VBox_PlayerStats/ProgressBar_PlayerHP");
-        playerBar.MaxValue = _maxPlayerHp;
-        playerBar.Value = _playerHpDuringRound;
+        playerBar.MaxValue = _playerState.MaxHp;
+        playerBar.Value = _playerState.CurrentHp;
+        GetNode<Label>("VBox_MainLayout/Row2_PlayerArea/Margin_Player/VBox_PlayerStats/Label_PlayerStatus").Text =
+            _playerState.BuildStatusSummary();
+    }
+
+    private void UpdateEnemyUi()
+    {
+        if (_enemyState == null)
+        {
+            return;
+        }
+
+        var bossBar = GetNode<ProgressBar>("VBox_MainLayout/Row1_BossArea/Margin_Boss/VBox_BossStats/ProgressBar_BossHP");
+        bossBar.MaxValue = _enemyState.MaxHp;
+        bossBar.Value = _enemyState.CurrentHp;
+        GetNode<Label>("VBox_MainLayout/Row1_BossArea/Margin_Boss/VBox_BossStats/Label_BossStatus").Text =
+            _enemyState.BuildStatusSummary();
+    }
+
+    private string ApplyCardStatus(CardData card)
+    {
+        if (_enemyState == null || _playerState == null)
+        {
+            return string.Empty;
+        }
+
+        if (card.StatusEffect.Type == StatusEffectType.None)
+        {
+            return string.Empty;
+        }
+
+        if (card.StatusTarget == CombatTarget.Enemy)
+        {
+            _enemyState.ApplyStatus(card.StatusEffect);
+            UpdateEnemyUi();
+        }
+        else
+        {
+            _playerState.ApplyStatus(card.StatusEffect);
+            UpdatePlayerUi();
+        }
+
+        return $"Applied {card.StatusEffect.BuildSummary()}";
     }
 }

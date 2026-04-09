@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/FishingScene.cs" id="1_jwkrb"]
 
@@ -6,19 +6,31 @@
 size = Vector2(28, 28)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_red"]
-size = Vector2(96, 42)
+size = Vector2(72, 30)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_blue"]
-size = Vector2(96, 42)
+size = Vector2(72, 30)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gray"]
-size = Vector2(96, 42)
+size = Vector2(72, 30)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gold"]
-size = Vector2(104, 46)
+size = Vector2(78, 34)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_green"]
-size = Vector2(104, 46)
+size = Vector2(78, 34)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_minnow_a"]
+size = Vector2(42, 18)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_minnow_b"]
+size = Vector2(42, 18)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_obstacle_a"]
+size = Vector2(58, 26)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_obstacle_b"]
+size = Vector2(58, 26)
 
 [node name="FishingScene" type="Node2D"]
 script = ExtResource("1_jwkrb")
@@ -58,18 +70,48 @@ text = "Time: 30.0"
 
 [node name="Label_Instruction" type="Label" parent="CanvasLayer/UI_Container/VBox_Stats"]
 layout_mode = 2
-text = "Click once to cast. Then click repeatedly to reel the lure back in a little at a time."
+text = "Aim with the crosshair, cast into the zone, then steer the lure left and right with your mouse while you reel."
 
 [node name="PlayerHook_Origin" type="Marker2D" parent="."]
-position = Vector2(160, 640)
+position = Vector2(640, 680)
+
+[node name="RodVisual" type="Node2D" parent="."]
+position = Vector2(640, 700)
+
+[node name="RodShaft" type="Line2D" parent="RodVisual"]
+width = 8.0
+default_color = Color(0.352941, 0.223529, 0.117647, 1)
+points = PackedVector2Array(0, 0, 0, -180)
+
+[node name="RodTip" type="Line2D" parent="RodVisual"]
+width = 4.0
+default_color = Color(0.866667, 0.729412, 0.521569, 1)
+points = PackedVector2Array(0, -180, 0, -250)
+
+[node name="CastPreview" type="Node2D" parent="."]
+
+[node name="PreviewCircle" type="Line2D" parent="CastPreview"]
+width = 2.0
+default_color = Color(0.968627, 0.964706, 0.839216, 0.8)
+points = PackedVector2Array(22, 0, 20.3253, 8.41904, 15.5563, 15.5563, 8.41904, 20.3253, 0, 22, -8.41904, 20.3253, -15.5563, 15.5563, -20.3253, 8.41904, -22, 0, -20.3253, -8.41904, -15.5563, -15.5563, -8.41904, -20.3253, 0, -22, 8.41904, -20.3253, 15.5563, -15.5563, 20.3253, -8.41904, 22, 0)
+
+[node name="PreviewHorizontal" type="Line2D" parent="CastPreview"]
+width = 2.0
+default_color = Color(0.968627, 0.964706, 0.839216, 0.95)
+points = PackedVector2Array(-30, 0, -10, 0, 10, 0, 30, 0)
+
+[node name="PreviewVertical" type="Line2D" parent="CastPreview"]
+width = 2.0
+default_color = Color(0.968627, 0.964706, 0.839216, 0.95)
+points = PackedVector2Array(0, -30, 0, -10, 0, 10, 0, 30)
 
 [node name="Hook_Rope" type="Line2D" parent="."]
 width = 2.0
 default_color = Color(0.952941, 0.952941, 0.952941, 1)
-points = PackedVector2Array(160, 640, 160, 640)
+points = PackedVector2Array(640, 680, 640, 680)
 
 [node name="Hook_Mechanism" type="Area2D" parent="."]
-position = Vector2(160, 640)
+position = Vector2(640, 680)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hook_Mechanism"]
 shape = SubResource("RectangleShape2D_hook")
@@ -88,7 +130,7 @@ shape = SubResource("RectangleShape2D_red")
 
 [node name="Visual" type="Polygon2D" parent="FishContainer/FishRed"]
 color = Color(0.913725, 0.313726, 0.270588, 1)
-polygon = PackedVector2Array(-46, -18, 20, -18, 42, -6, 48, 0, 42, 6, 20, 18, -46, 18)
+polygon = PackedVector2Array(-34, -13, 16, -13, 31, -5, 36, 0, 31, 5, 16, 13, -34, 13)
 
 [node name="FishBlue" type="Area2D" parent="FishContainer"]
 position = Vector2(1120, 360)
@@ -98,7 +140,7 @@ shape = SubResource("RectangleShape2D_blue")
 
 [node name="Visual" type="Polygon2D" parent="FishContainer/FishBlue"]
 color = Color(0.243137, 0.521569, 0.886275, 1)
-polygon = PackedVector2Array(-46, -18, 20, -18, 42, -6, 48, 0, 42, 6, 20, 18, -46, 18)
+polygon = PackedVector2Array(-34, -13, 16, -13, 31, -5, 36, 0, 31, 5, 16, 13, -34, 13)
 
 [node name="FishGray" type="Area2D" parent="FishContainer"]
 position = Vector2(540, 510)
@@ -108,7 +150,7 @@ shape = SubResource("RectangleShape2D_gray")
 
 [node name="Visual" type="Polygon2D" parent="FishContainer/FishGray"]
 color = Color(0.729412, 0.745098, 0.780392, 1)
-polygon = PackedVector2Array(-46, -18, 20, -18, 42, -6, 48, 0, 42, 6, 20, 18, -46, 18)
+polygon = PackedVector2Array(-34, -13, 16, -13, 31, -5, 36, 0, 31, 5, 16, 13, -34, 13)
 
 [node name="FishGold" type="Area2D" parent="FishContainer"]
 position = Vector2(980, 170)
@@ -118,7 +160,7 @@ shape = SubResource("RectangleShape2D_gold")
 
 [node name="Visual" type="Polygon2D" parent="FishContainer/FishGold"]
 color = Color(0.933333, 0.741176, 0.254902, 1)
-polygon = PackedVector2Array(-50, -20, 16, -20, 40, -8, 52, 0, 40, 8, 16, 20, -50, 20)
+polygon = PackedVector2Array(-37, -15, 13, -15, 30, -6, 39, 0, 30, 6, 13, 15, -37, 15)
 
 [node name="FishGreen" type="Area2D" parent="FishContainer"]
 position = Vector2(260, 430)
@@ -128,4 +170,44 @@ shape = SubResource("RectangleShape2D_green")
 
 [node name="Visual" type="Polygon2D" parent="FishContainer/FishGreen"]
 color = Color(0.270588, 0.764706, 0.490196, 1)
-polygon = PackedVector2Array(-50, -20, 16, -20, 40, -8, 52, 0, 40, 8, 16, 20, -50, 20)
+polygon = PackedVector2Array(-37, -15, 13, -15, 30, -6, 39, 0, 30, 6, 13, 15, -37, 15)
+
+[node name="MinnowA" type="Area2D" parent="FishContainer"]
+position = Vector2(860, 580)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FishContainer/MinnowA"]
+shape = SubResource("RectangleShape2D_minnow_a")
+
+[node name="Visual" type="Polygon2D" parent="FishContainer/MinnowA"]
+color = Color(0.858824, 0.886275, 0.905882, 1)
+polygon = PackedVector2Array(-20, -8, 10, -8, 18, -3, 21, 0, 18, 3, 10, 8, -20, 8)
+
+[node name="MinnowB" type="Area2D" parent="FishContainer"]
+position = Vector2(1040, 470)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FishContainer/MinnowB"]
+shape = SubResource("RectangleShape2D_minnow_b")
+
+[node name="Visual" type="Polygon2D" parent="FishContainer/MinnowB"]
+color = Color(0.768627, 0.854902, 0.913725, 1)
+polygon = PackedVector2Array(-20, -8, 10, -8, 18, -3, 21, 0, 18, 3, 10, 8, -20, 8)
+
+[node name="ObstacleA" type="Area2D" parent="FishContainer"]
+position = Vector2(930, 310)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FishContainer/ObstacleA"]
+shape = SubResource("RectangleShape2D_obstacle_a")
+
+[node name="Visual" type="Polygon2D" parent="FishContainer/ObstacleA"]
+color = Color(0.509804, 0.619608, 0.317647, 1)
+polygon = PackedVector2Array(-28, -11, 12, -11, 23, -5, 29, 0, 23, 5, 12, 11, -28, 11)
+
+[node name="ObstacleB" type="Area2D" parent="FishContainer"]
+position = Vector2(240, 250)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FishContainer/ObstacleB"]
+shape = SubResource("RectangleShape2D_obstacle_b")
+
+[node name="Visual" type="Polygon2D" parent="FishContainer/ObstacleB"]
+color = Color(0.462745, 0.552941, 0.286275, 1)
+polygon = PackedVector2Array(-28, -11, 12, -11, 23, -5, 29, 0, 23, 5, 12, 11, -28, 11)

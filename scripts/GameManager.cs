@@ -12,6 +12,8 @@ public partial class GameManager : Control
     private int _battleNumber = 1;
     private int _fishingRoundNumber = 1;
     private Array<Dictionary> _currentHand = new();
+    private Array<Dictionary> _bossStatuses = new();
+    private Array<Dictionary> _playerStatuses = new();
     private Node? _activePhase;
 
     public override void _Ready()
@@ -26,6 +28,8 @@ public partial class GameManager : Control
         _battleNumber = 1;
         _fishingRoundNumber = 1;
         _currentHand = new Array<Dictionary>();
+        _bossStatuses = new Array<Dictionary>();
+        _playerStatuses = new Array<Dictionary>();
         ShowFishingPhase();
     }
 
@@ -53,7 +57,7 @@ public partial class GameManager : Control
         var combatScene = GD.Load<PackedScene>("res://scenes/CombatScene.tscn").Instantiate<CombatScene>();
         _activePhase = combatScene;
         GetNode<Control>("PhaseContainer").AddChild(combatScene);
-        combatScene.SetupRound(_playerHp, StartingPlayerHp, _bossHp, StartingBossHp, _currentHand, _battleNumber);
+        combatScene.SetupRound(_playerHp, StartingPlayerHp, _bossHp, StartingBossHp, _currentHand, _playerStatuses, _bossStatuses, _battleNumber);
         combatScene.RoundFinished += OnRoundFinished;
     }
 
@@ -83,8 +87,10 @@ public partial class GameManager : Control
 
     private void OnRoundFinished(Dictionary result)
     {
-        _playerHp = Mathf.Max(0, _playerHp - (int)result["player_damage"]);
-        _bossHp = Mathf.Max(0, _bossHp - (int)result["boss_damage"]);
+        _playerHp = (int)result["player_hp"];
+        _bossHp = (int)result["boss_hp"];
+        _bossStatuses = (Array<Dictionary>)result["boss_statuses"];
+        _playerStatuses = (Array<Dictionary>)result["player_statuses"];
 
         if (_bossHp <= 0)
         {
