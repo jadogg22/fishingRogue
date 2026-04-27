@@ -28,6 +28,38 @@ public static class FxHelper
 		tween.TweenProperty(control, "scale", Vector2.One, duration * 0.55f);
 	}
 
+	public static void TweenProgressBar(Range bar, float targetValue, float duration = 0.35f)
+	{
+		if (!GodotObject.IsInstanceValid(bar))
+		{
+			return;
+		}
+
+		var tween = bar.CreateTween();
+		tween.TweenProperty(bar, "value", targetValue, duration)
+			.SetTrans(Tween.TransitionType.Cubic)
+			.SetEase(Tween.EaseType.Out);
+	}
+
+	public static void ShakeControl(Control control, float intensity = 8.0f, float duration = 0.25f)
+	{
+		if (!GodotObject.IsInstanceValid(control))
+		{
+			return;
+		}
+
+		var originalPosition = control.Position;
+		var tween = control.CreateTween();
+		
+		for (var i = 0; i < 4; i++)
+		{
+			var offset = new Vector2((float)GD.RandRange(-intensity, intensity), (float)GD.RandRange(-intensity, intensity));
+			tween.TweenProperty(control, "position", originalPosition + offset, duration / 5.0f);
+		}
+		
+		tween.TweenProperty(control, "position", originalPosition, duration / 5.0f);
+	}
+
 	public static Label SpawnFloatingLabel(Control parent, string text, Vector2 position, Color color, int fontSize = 20)
 	{
 		var label = new Label

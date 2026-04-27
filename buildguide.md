@@ -38,18 +38,18 @@ This scene is where the active fishing mechanic occurs. The wireframe focuses on
 ### Visual Hierarchy & Layout:
 
 * **`FishingScene` (Node2D)**
-    * **`CanvasLayer` (CanvasLayer)** *[Ensures UI elements stay on top of the 'water']*
+	* **`CanvasLayer` (CanvasLayer)** *[Ensures UI elements stay on top of the 'water']*
         * **`UI_Container` (MarginContainer)** *[Anchored to Top-Right]*
             * **`HBox_Stats` (HBoxContainer)**
                 * **`Label_PlayerHP` (Label)** [Text: "Player HP: 100/100"]
                 * **`Label_Timer` (Label)** [Text: "Time: 30s"]
     * **`Background_Water` (TextureRect)** *[Wireframe: Blue placeholder, full screen]*
-    * **`Surface_Line` (ColorRect)** *[Wireframe: Green line at Top (y=50) for 'surface' collision]*
+	* **`Surface_Line` (ColorRect)** *[Wireframe: Green line at Top (y=50) for 'surface' collision]*
     * **`PlayerHook_Origin` (Position2D)** *[Wireframe: Anchor point for the hook mechanism, Top-Center]*
         * **`Hook_Mechanism` (KinematicBody2D / Area2D)**
             * **`CollisionShape2D` (CollisionShape2D)** *[Wireframe: Small circle (Radius: 5)]*
-            * **`Sprite_Hook` (Sprite2D)** *[Wireframe: White 'J' shape placeholder]*
-    * **`Fish_Spawn_Area` (Area2D / Path2D)** *[Wireframe: A rectangular border covering the main 'water' area (e.g., 200x200 to 800x600)]*
+			* **`Sprite_Hook` (Sprite2D)** *[Wireframe: White 'J' shape placeholder]*
+	* **`Fish_Spawn_Area` (Area2D / Path2D)** *[Wireframe: A rectangular border covering the main 'water' area (e.g., 200x200 to 800x600)]*
         * **`Fish_Placeholder_Common` (Area2D)** *[Wireframe: Small Gray Rectangle/Circle (e.g., 20x10)]*
         * **`Fish_Placeholder_Fire` (Area2D)** *[Wireframe: Small Red Rectangle/Circle]*
         * **`Fish_Placeholder_Shield` (Area2D)** *[Wireframe: Small Blue Rectangle/Circle]*
@@ -59,7 +59,7 @@ This scene is where the active fishing mechanic occurs. The wireframe focuses on
 * **Player Input:** Hook mechanism follows mouse X-axis (constrained). Mouse Click triggers Hook mechanism 'dropping' (moving down the Y-axis towards bottom of screen).
 * **Collision Interaction:**
     * `Hook_Mechanism` detects collision with any `Fish_Placeholder_X` Area2D.
-    * On collision: `Fish_X` is 'caught' (becomes child of the hook), fishing state ends. Trigger `GameManager` to transition to `CombatScene`.
+	* On collision: `Fish_X` is 'caught' (becomes child of the hook), fishing state ends. Trigger `GameManager` to transition to `CombatScene`.
 
 ---
 

@@ -1,6 +1,15 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=18 format=3 uid="uid://dnbp0f7w5u0m5"]
 
-[ext_resource type="Script" path="res://scripts/MainMenu.cs" id="1_p7x3d"]
+[ext_resource type="Script" uid="uid://d1c4m7s3x1v8b" path="res://scripts/MainMenu.cs" id="1_p7x3d"]
+[ext_resource type="FontFile" uid="uid://b7v8d7f6g5h4i" path="res://assets/kenney_ui-pack/Font/Kenney Future.ttf" id="2_font"]
+[ext_resource type="PackedScene" uid="uid://redfish" path="res://scenes/fish/RedFish.tscn" id="3_f1"]
+[ext_resource type="PackedScene" uid="uid://bluefish" path="res://scenes/fish/BlueFish.tscn" id="4_f2"]
+[ext_resource type="PackedScene" path="res://scenes/fish/Fish3.tscn" id="5_f3"]
+[ext_resource type="PackedScene" path="res://scenes/fish/Fish5.tscn" id="6_f5"]
+[ext_resource type="PackedScene" path="res://scenes/fish/Fish8.tscn" id="7_f8"]
+[ext_resource type="PackedScene" path="res://scenes/fish/TurtleFish.tscn" id="8_turtle"]
+[ext_resource type="PackedScene" path="res://scenes/fish/OctopusFish.tscn" id="9_octo"]
+[ext_resource type="PackedScene" path="res://scenes/fish/SwordfishFish.tscn" id="10_sword"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -10,6 +19,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_p7x3d")
+FishPool = Array[PackedScene]([ExtResource("3_f1"), ExtResource("4_f2"), ExtResource("5_f3"), ExtResource("6_f5"), ExtResource("7_f8"), ExtResource("8_turtle"), ExtResource("9_octo"), ExtResource("10_sword")])
 
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
@@ -18,7 +28,9 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.0392157, 0.133333, 0.188235, 1)
+color = Color(0.0470588, 0.160784, 0.227451, 1)
+
+[node name="BackgroundFish" type="Node2D" parent="."]
 
 [node name="CenterBox" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -30,21 +42,41 @@ grow_vertical = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CenterBox"]
 layout_mode = 2
-theme_override_constants/separation = 18
+theme_override_constants/separation = 24
 
 [node name="Title" type="Label" parent="CenterBox/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 42
-text = "Fishing Deck Roguelike"
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 12
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 64
+text = "Fishing Deck"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="CenterBox/VBoxContainer"]
+[node name="Title2" type="Label" parent="CenterBox/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Wireframe MVP for fishing -> card -> boss combat"
+theme_override_colors/font_color = Color(0.862745, 0.301961, 0.258824, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 32
+text = "ROGUELIKE"
 horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="CenterBox/VBoxContainer"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
 
 [node name="StartButton" type="Button" parent="CenterBox/VBoxContainer"]
-custom_minimum_size = Vector2(260, 56)
+custom_minimum_size = Vector2(300, 64)
 layout_mode = 2
-text = "Start Game"
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 24
+text = "Cast Away"
+
+[node name="QuitButton" type="Button" parent="CenterBox/VBoxContainer"]
+custom_minimum_size = Vector2(300, 56)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "Retire"
