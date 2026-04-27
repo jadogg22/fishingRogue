@@ -1,16 +1,19 @@
 using Godot;
-using System.Collections.Generic;
+using Godot.Collections;
 
-public partial class BossDefinition
+[GlobalClass]
+public partial class BossDefinition : Resource
 {
-    public string Name { get; set; } = string.Empty;
-    public string Subtitle { get; set; } = string.Empty;
-    public int MaxHp { get; set; }
-    public int Armor { get; set; }
-    public int RewardGold { get; set; }
-    public Color AccentColor { get; set; } = Colors.White;
-    public Color BackgroundColor { get; set; } = Colors.Black;
-    public List<BossIntentData> IntentSequence { get; set; } = new();
+    [Export] public string Name { get; set; } = string.Empty;
+    [Export] public string Subtitle { get; set; } = string.Empty;
+    [Export] public int MaxHp { get; set; }
+    [Export] public int Armor { get; set; }
+    [Export] public int RewardGold { get; set; }
+    [Export] public Color AccentColor { get; set; } = Colors.White;
+    [Export] public Color BackgroundColor { get; set; } = Colors.Black;
+    [Export] public Array<BossIntentData> IntentSequence { get; set; } = new();
+
+    public BossDefinition() { }
 
     public string BuildDisplayName()
     {
@@ -31,6 +34,6 @@ public partial class BossDefinition
         }
 
         var sequenceIndex = Mathf.PosMod(combatRoundNumber - 1, IntentSequence.Count);
-        return IntentSequence[sequenceIndex].Duplicate();
+        return IntentSequence[sequenceIndex].DuplicateStatus();
     }
 }

@@ -13,6 +13,14 @@
 [ext_resource type="PackedScene" path="res://scenes/fish/OctopusFish.tscn" id="11_octo"]
 [ext_resource type="PackedScene" path="res://scenes/fish/SwordfishFish.tscn" id="12_sword"]
 [ext_resource type="PackedScene" path="res://scenes/fish/TurtleFish.tscn" id="13_turtle"]
+[ext_resource type="PackedScene" path="res://scenes/fish/Fish1.tscn" id="14_f1"]
+[ext_resource type="PackedScene" path="res://scenes/fish/Fish2.tscn" id="15_f2"]
+[ext_resource type="PackedScene" path="res://scenes/fish/Fish3.tscn" id="16_f3"]
+[ext_resource type="PackedScene" path="res://scenes/fish/Fish4.tscn" id="17_f4"]
+[ext_resource type="PackedScene" path="res://scenes/fish/Fish5.tscn" id="18_f5"]
+[ext_resource type="PackedScene" path="res://scenes/fish/Fish6.tscn" id="19_f6"]
+[ext_resource type="PackedScene" path="res://scenes/fish/Fish7.tscn" id="20_f7"]
+[ext_resource type="PackedScene" path="res://scenes/fish/Fish8.tscn" id="21_f8"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hook"]
 size = Vector2(28, 28)
@@ -46,8 +54,8 @@ size = Vector2(58, 26)
 
 [node name="FishingScene" type="Node2D"]
 script = ExtResource("1_jwkrb")
-MainFishPool = Array[PackedScene]([ExtResource("2_red"), ExtResource("3_blue"), ExtResource("5_gray"), ExtResource("6_gold"), ExtResource("7_green")])
-MinnowPool = Array[PackedScene]([ExtResource("4_min")])
+MainFishPool = Array[PackedScene]([ExtResource("16_f3"), ExtResource("17_f4"), ExtResource("18_f5"), ExtResource("19_f6"), ExtResource("20_f7"), ExtResource("21_f8")])
+MinnowPool = Array[PackedScene]([ExtResource("14_f1"), ExtResource("15_f2")])
 ObstaclePool = Array[PackedScene]([])
 SpecialFishPool = Array[PackedScene]([ExtResource("8_angler"), ExtResource("9_eel"), ExtResource("10_jelly"), ExtResource("11_octo"), ExtResource("12_sword"), ExtResource("13_turtle")])
 SpecialFishSpawnChance = 0.18

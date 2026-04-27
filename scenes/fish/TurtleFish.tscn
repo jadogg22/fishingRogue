@@ -1,23 +1,48 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/Fish.cs" id="1_turtle"]
-[ext_resource type="Texture2D" path="res://assets/octopus-jellyfish-shark-and-turtle-free-sprite-pixel-art/turtle/Walk.png" id="2_turtle_tex"]
+[ext_resource type="Texture2D" path="res://assets/octopus-jellyfish-shark-and-turtle-free-sprite-pixel-art/turtle/Idle.png" id="2_turtletex"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_turtle"]
-size = Vector2(74, 34)
+[sub_resource type="Animation" id="Animation_swim"]
+resource_name = "swim"
+length = 0.8
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_fish"]
+_data = {
+"swim": SubResource("Animation_swim")
+}
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_turtle"]
+radius = 20.0
 
 [node name="TurtleFish" type="Area2D"]
 script = ExtResource("1_turtle")
-SwimTexture = ExtResource("2_turtle_tex")
-FrameWidth = 48
-VisualScale = 1.45
-Speed = 150.0
-SineFrequency = 1.9
-SineAmplitude = 14.0
-SinePhase = 1.8
+Speed = 60.0
+SineFrequency = 1.2
+SineAmplitude = 8.0
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_turtletex")
+hframes = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("RectangleShape2D_turtle")
+shape = SubResource("CircleShape2D_turtle")
 
-[node name="Visual" type="Polygon2D" parent="."]
-visible = false
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_fish")
+}
+autoplay = "swim"

@@ -1,0 +1,58 @@
+[gd_resource type="Resource" script_class="BossDefinition" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/BossDefinition.cs" id="1_boss"]
+[ext_resource type="Script" path="res://scripts/BossIntentData.cs" id="2_intent"]
+[ext_resource type="Script" path="res://scripts/StatusEffectData.cs" id="3_status"]
+
+[sub_resource type="Resource" id="1"]
+script = ExtResource("3_status")
+Type = 1
+Potency = 2
+Duration = 2
+
+[sub_resource type="Resource" id="2"]
+script = ExtResource("2_intent")
+Type = 2
+Name = "Bog Spray"
+Description = "Attack for 5 and apply Poison 2"
+Damage = 5
+AppliedStatus = SubResource("1")
+
+[sub_resource type="Resource" id="3"]
+script = ExtResource("2_intent")
+Type = 0
+Name = "Lash Tail"
+Description = "Attack for 7"
+Damage = 7
+
+[sub_resource type="Resource" id="4"]
+script = ExtResource("3_status")
+Type = 3
+Potency = 1
+Duration = 3
+
+[sub_resource type="Resource" id="5"]
+script = ExtResource("2_intent")
+Type = 3
+Name = "Silt Hex"
+Description = "Attack for 5 and apply Weaken 1"
+Damage = 5
+AppliedStatus = SubResource("4")
+
+[sub_resource type="Resource" id="6"]
+script = ExtResource("2_intent")
+Type = 1
+Name = "Marsh Drop"
+Description = "Heavy attack for 9"
+Damage = 9
+
+[resource]
+script = ExtResource("1_boss")
+Name = "Mire Queen"
+Subtitle = "Bog Matriarch"
+MaxHp = 56
+Armor = 1
+RewardGold = 18
+AccentColor = Color(0.294118, 0.552941, 0.337255, 1)
+BackgroundColor = Color(0.0862745, 0.152941, 0.109804, 1)
+IntentSequence = Array[Resource]([SubResource("2"), SubResource("3"), SubResource("5"), SubResource("6")])

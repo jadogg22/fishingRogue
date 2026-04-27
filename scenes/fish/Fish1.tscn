@@ -1,11 +1,11 @@
 [gd_scene load_steps=5 format=3]
 
-[ext_resource type="Script" path="res://scripts/Fish.cs" id="1_fish"]
-[ext_resource type="Texture2D" path="res://assets/octopus-jellyfish-shark-and-turtle-free-sprite-pixel-art/octopus/Idle.png" id="2_tex"]
+[ext_resource type="Script" path="res://scripts/Fish.cs" id="1_f1"]
+[ext_resource type="Texture2D" path="res://assets/free-fishing-game-assets-pixel-art-pack/3 Objects/Catch/1.png" id="2_t1"]
 
 [sub_resource type="Animation" id="Animation_swim"]
 resource_name = "swim"
-length = 0.8
+length = 0.4
 loop_mode = 1
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -14,10 +14,10 @@ tracks/0/path = NodePath("Sprite2D:frame")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.2, 0.4, 0.6),
-"transitions": PackedFloat32Array(1, 1, 1, 1),
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
 "update": 1,
-"values": [0, 1, 2, 3]
+"values": [0, 1]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_fish"]
@@ -25,22 +25,23 @@ _data = {
 "swim": SubResource("Animation_swim")
 }
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_fish"]
-radius = 20.0
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_f1"]
+size = Vector2(10, 4)
 
-[node name="OctopusFish" type="Area2D"]
-script = ExtResource("1_fish")
-Speed = 120.0
-IsMainFish = true
-SineFrequency = 1.0
-SineAmplitude = 20.0
+[node name="Fish1" type="Area2D"]
+script = ExtResource("1_f1")
+Speed = 100.0
+IsMainFish = false
+HasAggro = true
+AggroDistance = 220.0
+AggroSpeed = 160.0
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-texture = ExtResource("2_tex")
-hframes = 4
+texture = ExtResource("2_t1")
+hframes = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("CircleShape2D_fish")
+shape = SubResource("RectangleShape2D_f1")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {

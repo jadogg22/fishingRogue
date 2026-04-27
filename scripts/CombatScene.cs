@@ -88,34 +88,36 @@ public partial class CombatScene : Control
         if (cardIndex < 0 || cardIndex >= _currentHand.Count) return;
 
         var card = _currentHand[cardIndex];
-        var damageSummary = string.Empty;
-        var bossDamage = 0;
+        var playSummary = card.PlayCard(_playerState, _enemyState, out int actualDamage, out int dealtDamage, out int blockedDamage, out string statusMessage);
 
         if (card.Damage > 0)
         {
-            var playerTurn = _playerState.ModifyOutgoingDamage(card.Damage);
-            damageSummary = playerTurn.Summary;
-            bossDamage = playerTurn.ActualDamage;
-
             if (card.DamageTarget == CombatTarget.Enemy)
             {
-                var dealtDamage = _enemyState.DealDamage(bossDamage);
-                var blockedDamage = Mathf.Max(0, bossDamage - dealtDamage);
                 _pendingResult["boss_damage"] = (int)_pendingResult["boss_damage"] + dealtDamage;
-                bossDamage = dealtDamage;
                 ShowEnemyImpact(dealtDamage, blockedDamage);
             }
             else
             {
-                _playerState.Heal(bossDamage);
-                ShowPlayerSupport($"+{bossDamage}", new Color("#74d99f"));
+                ShowPlayerSupport($"+{actualDamage}", new Color("#74d99f"));
+            }
+        }
+
+        if (!string.IsNullOrEmpty(statusMessage))
+        {
+            if (card.StatusTarget == CombatTarget.Enemy)
+            {
+                ShowEnemyStatus(statusMessage);
+            }
+            else
+            {
+                ShowPlayerSupport(statusMessage, new Color("#ffe08a"));
             }
         }
 
         _currentHand.RemoveAt(cardIndex);
         FxHelper.PulseControl(GetNode<Button>($"VBox_MainLayout/Row3_CardHand/Panel_HandBackground/VBox_HandLayout/HBox_Hand/Card_Slot_{cardIndex + 1}"), 0.96f, 0.12f);
         FxHelper.PlayOneShot(this, ClickSound, "ClickSound");
-        var statusAppliedMessage = ApplyCardStatus(card);
 
         UpdateEnemyUi();
         UpdatePlayerUi();
@@ -135,14 +137,8 @@ public partial class CombatScene : Control
             return;
         }
 
-        var playSummary = $"You used {card.Name} for {bossDamage} damage.";
-        if (card.DamageTarget == CombatTarget.Player) playSummary = $"You used {card.Name} to recover {bossDamage}.";
-
-        if (!string.IsNullOrEmpty(damageSummary)) playSummary += $" {damageSummary}.";
-        if (!string.IsNullOrEmpty(statusAppliedMessage)) playSummary += $" {statusAppliedMessage}.";
-
         GetNode<Label>("VBox_MainLayout/Row3_CardHand/Panel_HandBackground/VBox_HandLayout/Label_Log").Text =
-            $"{playSummary} {_currentHand.Count} card(s) left.";
+            $"{playSummary}. {_currentHand.Count} card(s) left.";
 
         if (_currentHand.Count > 0) return;
 
@@ -208,27 +204,6 @@ public partial class CombatScene : Control
         bossBar.MaxValue = _enemyState.MaxHp;
         bossBar.Value = _enemyState.CurrentHp;
         GetNode<Label>("VBox_MainLayout/Row1_BossArea/Margin_Boss/VBox_BossStats/Label_BossStatus").Text = _enemyState.BuildStatusSummary();
-    }
-
-    private string ApplyCardStatus(CardData card)
-    {
-        if (_enemyState == null || _playerState == null) return string.Empty;
-        if (card.StatusEffect.Type == StatusEffectType.None) return string.Empty;
-
-        if (card.StatusTarget == CombatTarget.Enemy)
-        {
-            _enemyState.ApplyStatus(card.StatusEffect);
-            UpdateEnemyUi();
-            ShowEnemyStatus(card.StatusEffect.BuildSummary());
-        }
-        else
-        {
-            _playerState.ApplyStatus(card.StatusEffect);
-            UpdatePlayerUi();
-            ShowPlayerSupport(card.StatusEffect.BuildSummary(), new Color("#ffe08a"));
-        }
-
-        return $"Applied {card.StatusEffect.BuildSummary()}";
     }
 
     private void WireButtonFx(Button button)

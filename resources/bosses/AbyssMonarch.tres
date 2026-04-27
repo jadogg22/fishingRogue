@@ -1,0 +1,65 @@
+[gd_resource type="Resource" script_class="BossDefinition" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/BossDefinition.cs" id="1_boss"]
+[ext_resource type="Script" path="res://scripts/BossIntentData.cs" id="2_intent"]
+[ext_resource type="Script" path="res://scripts/StatusEffectData.cs" id="3_status"]
+
+[sub_resource type="Resource" id="1"]
+script = ExtResource("2_intent")
+Type = 0
+Name = "Royal Bite"
+Description = "Attack for 8"
+Damage = 8
+
+[sub_resource type="Resource" id="2"]
+script = ExtResource("2_intent")
+Type = 1
+Name = "Depth Charge"
+Description = "Heavy attack for 11"
+Damage = 11
+
+[sub_resource type="Resource" id="3"]
+script = ExtResource("3_status")
+Type = 1
+Potency = 2
+Duration = 3
+
+[sub_resource type="Resource" id="4"]
+script = ExtResource("2_intent")
+Type = 2
+Name = "Blackwater Spit"
+Description = "Attack for 6 and apply Poison 2"
+Damage = 6
+AppliedStatus = SubResource("3")
+
+[sub_resource type="Resource" id="5"]
+script = ExtResource("2_intent")
+Type = 4
+Name = "Deep Feast"
+Description = "Recover 7 HP"
+HealAmount = 7
+
+[sub_resource type="Resource" id="6"]
+script = ExtResource("3_status")
+Type = 3
+Potency = 2
+Duration = 2
+
+[sub_resource type="Resource" id="7"]
+script = ExtResource("2_intent")
+Type = 3
+Name = "Pressure Wave"
+Description = "Attack for 6 and apply Weaken 2"
+Damage = 6
+AppliedStatus = SubResource("6")
+
+[resource]
+script = ExtResource("1_boss")
+Name = "Abyss Monarch"
+Subtitle = "The Lake Below"
+MaxHp = 68
+Armor = 2
+RewardGold = 30
+AccentColor = Color(0.815686, 0.631373, 0.247059, 1)
+BackgroundColor = Color(0.0784314, 0.0745098, 0.121569, 1)
+IntentSequence = Array[Resource]([SubResource("1"), SubResource("2"), SubResource("4"), SubResource("5"), SubResource("7")])

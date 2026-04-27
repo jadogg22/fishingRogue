@@ -29,9 +29,9 @@ public partial class EnemyStateManager
         }
     }
 
-    public int DealDamage(int amount)
+    public int DealDamage(int amount, bool piercing = false)
     {
-        var actualDamage = Mathf.Max(0, amount - Armor);
+        var actualDamage = piercing ? amount : Mathf.Max(0, amount - Armor);
         CurrentHp = Mathf.Max(0, CurrentHp - actualDamage);
         return actualDamage;
     }

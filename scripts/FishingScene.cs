@@ -15,7 +15,6 @@ public partial class FishingScene : Node2D
     private const float CatchDistance = 58.0f;
     private const float HorizontalMargin = 110.0f;
     private const int MaxActiveMainFish = 2;
-    private const int MaxActiveSpecialFish = 1;
     private static readonly Vector2 RodOrigin = new(640.0f, 680.0f);
     private static readonly AudioStream? CastSound = GD.Load<AudioStream>("res://assets/kenney_ui-pack/Sounds/tap-a.ogg");
     private static readonly AudioStream? CatchSound = GD.Load<AudioStream>("res://assets/kenney_ui-audio/Audio/click4.ogg");
@@ -42,12 +41,10 @@ public partial class FishingScene : Node2D
 
     private Node2D? _fishContainer;
     private readonly List<Fish> _activeFish = new();
-    private float _specialSpawnCooldown;
 
     public override void _Ready()
     {
         _fishContainer = GetNode<Node2D>("FishContainer");
-        // Clear existing placeholder fish from the TSCN if any
         foreach (Node child in _fishContainer.GetChildren())
         {
             child.QueueFree();
@@ -67,7 +64,6 @@ public partial class FishingScene : Node2D
         _manualReelReady = false;
         _hasCaughtFish = false;
         _roundEnding = false;
-        _specialSpawnCooldown = 2.5f;
         _castPressedLastFrame = false;
         _pendingClick = false;
         _castTarget = RodOrigin;
@@ -94,13 +90,11 @@ public partial class FishingScene : Node2D
         }
         _activeFish.Clear();
 
-        // Spawn initial fish
         for (int i = 0; i < MaxActiveMainFish; i++)
         {
-            SpawnRandomFish(MainFishPool);
+            SpawnRandomFish(GD.Randf() < SpecialFishSpawnChance ? SpecialFishPool : MainFishPool);
         }
         
-        // Spawn minnows and obstacles
         foreach (var p in MinnowPool) SpawnRandomFish(new[] { p });
         foreach (var p in ObstaclePool) SpawnRandomFish(new[] { p });
     }
@@ -116,7 +110,7 @@ public partial class FishingScene : Node2D
 
         float direction = GD.Randf() > 0.5f ? 1.0f : -1.0f;
         Vector2 spawnPos = new Vector2(
-            direction > 0 ? -70.0f : 1350.0f,
+            direction > 0 ? -110.0f : 1390.0f,
             (float)GD.RandRange(150.0f, 560.0f)
         );
         fish.Activate(spawnPos, direction);
@@ -130,10 +124,7 @@ public partial class FishingScene : Node2D
         UpdateCastPreview();
         UpdateRodVisual();
         UpdateLabels();
-        
-        // Custom respawn logic for main fish if they deactivated
         UpdateMainFishRespawns((float)delta);
-        UpdateSpecialFishSpawns((float)delta);
     }
 
     private void UpdateMainFishRespawns(float delta)
@@ -147,49 +138,8 @@ public partial class FishingScene : Node2D
 
         if (activeMainCount < MaxActiveMainFish)
         {
-            SpawnRandomFish(MainFishPool);
+            SpawnRandomFish(GD.Randf() < SpecialFishSpawnChance ? SpecialFishPool : MainFishPool);
         }
-    }
-
-    private void UpdateSpecialFishSpawns(float delta)
-    {
-        if (SpecialFishPool == null || SpecialFishPool.Length == 0)
-        {
-            return;
-        }
-
-        _specialSpawnCooldown = Mathf.Max(0.0f, _specialSpawnCooldown - delta);
-        if (_specialSpawnCooldown > 0.0f)
-        {
-            return;
-        }
-
-        var activeSpecialCount = 0;
-        foreach (var fish in _activeFish)
-        {
-            if (!IsInstanceValid(fish) || !fish.Visible)
-            {
-                continue;
-            }
-
-            if (fish.IsMainFish && IsSpecialFishName(fish.Name))
-            {
-                activeSpecialCount += 1;
-            }
-        }
-
-        if (activeSpecialCount >= MaxActiveSpecialFish)
-        {
-            _specialSpawnCooldown = 2.0f;
-            return;
-        }
-
-        if (GD.Randf() <= SpecialFishSpawnChance)
-        {
-            SpawnRandomFish(SpecialFishPool);
-        }
-
-        _specialSpawnCooldown = (float)GD.RandRange(3.0f, 6.0f);
     }
 
     public override void _Input(InputEvent @event)
@@ -370,11 +320,6 @@ public partial class FishingScene : Node2D
         tween.TweenProperty(label, "position", label.Position + new Vector2(0.0f, -36.0f), 0.45f);
         tween.TweenProperty(label, "modulate:a", 0.0f, 0.45f);
         tween.Finished += label.QueueFree;
-    }
-
-    private static bool IsSpecialFishName(string fishName)
-    {
-        return fishName is "AnglerFish" or "EelFish" or "JellyfishFish" or "OctopusFish" or "SwordfishFish" or "TurtleFish";
     }
 
     private void UpdateCastPreview()

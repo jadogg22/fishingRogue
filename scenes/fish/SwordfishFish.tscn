@@ -1,23 +1,48 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/Fish.cs" id="1_sword"]
-[ext_resource type="Texture2D" path="res://assets/octopus-jellyfish-shark-and-turtle-free-sprite-pixel-art/swardfish/Walk.png" id="2_sword_tex"]
+[ext_resource type="Texture2D" path="res://assets/octopus-jellyfish-shark-and-turtle-free-sprite-pixel-art/swardfish/Idle.png" id="2_swordtex"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_sword"]
-size = Vector2(92, 26)
+[sub_resource type="Animation" id="Animation_swim"]
+resource_name = "swim"
+length = 0.6
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.15, 0.3, 0.45),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_fish"]
+_data = {
+"swim": SubResource("Animation_swim")
+}
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_sword"]
+radius = 20.0
 
 [node name="SwordfishFish" type="Area2D"]
 script = ExtResource("1_sword")
-SwimTexture = ExtResource("2_sword_tex")
-FrameWidth = 48
-VisualScale = 1.45
-Speed = 300.0
-SineFrequency = 2.7
+Speed = 320.0
+SineFrequency = 2.5
 SineAmplitude = 12.0
-SinePhase = 0.2
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_swordtex")
+hframes = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("RectangleShape2D_sword")
+shape = SubResource("CircleShape2D_sword")
 
-[node name="Visual" type="Polygon2D" parent="."]
-visible = false
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_fish")
+}
+autoplay = "swim"

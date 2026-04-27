@@ -1,13 +1,18 @@
-public partial class BossIntentData
-{
-    public BossIntentType Type { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public int Damage { get; set; }
-    public int HealAmount { get; set; }
-    public StatusEffectData? AppliedStatus { get; set; }
+using Godot;
 
-    public BossIntentData Duplicate()
+[GlobalClass]
+public partial class BossIntentData : Resource
+{
+    [Export] public BossIntentType Type { get; set; }
+    [Export] public string Name { get; set; } = string.Empty;
+    [Export] public string Description { get; set; } = string.Empty;
+    [Export] public int Damage { get; set; }
+    [Export] public int HealAmount { get; set; }
+    [Export] public StatusEffectData? AppliedStatus { get; set; }
+
+    public BossIntentData() { }
+
+    public BossIntentData DuplicateStatus()
     {
         return new BossIntentData
         {

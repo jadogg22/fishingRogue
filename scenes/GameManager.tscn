@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/GameManager.cs" id="1_jm8la"]
+[ext_resource type="Resource" path="res://resources/bosses/TideWarden.tres" id="2_tide"]
+[ext_resource type="Resource" path="res://resources/bosses/MireQueen.tres" id="3_mire"]
+[ext_resource type="Resource" path="res://resources/bosses/AbyssMonarch.tres" id="4_abyss"]
 
 [node name="GameManager" type="Control"]
 layout_mode = 3
@@ -10,6 +13,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_jm8la")
+BossPool = Array[Resource]([ExtResource("2_tide"), ExtResource("3_mire"), ExtResource("4_abyss")])
 
 [node name="PhaseContainer" type="Control" parent="."]
 layout_mode = 1
