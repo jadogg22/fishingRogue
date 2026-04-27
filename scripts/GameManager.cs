@@ -43,7 +43,12 @@ public partial class GameManager : Control
     {
         if (IsInstanceValid(_activePhase))
         {
+            if (_activePhase.GetParent() != null)
+            {
+                _activePhase.GetParent().RemoveChild(_activePhase);
+            }
             _activePhase.QueueFree();
+            _activePhase = null;
         }
     }
 

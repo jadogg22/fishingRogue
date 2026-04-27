@@ -1,12 +1,11 @@
-[gd_resource type="Resource" script_class="BossDefinition" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="BossDefinition" load_steps=9 format=3 uid="uid://cfvwmg0aaqena"]
 
-[ext_resource type="Script" path="res://scripts/BossDefinition.cs" id="1_boss"]
-[ext_resource type="Script" path="res://scripts/BossIntentData.cs" id="2_intent"]
-[ext_resource type="Script" path="res://scripts/StatusEffectData.cs" id="3_status"]
+[ext_resource type="Script" uid="uid://dshatt1gvhb3w" path="res://scripts/BossDefinition.cs" id="1_boss"]
+[ext_resource type="Script" uid="uid://dhxck6knlb2kg" path="res://scripts/BossIntentData.cs" id="2_intent"]
+[ext_resource type="Script" uid="uid://bi5arqmunhnyi" path="res://scripts/StatusEffectData.cs" id="3_status"]
 
 [sub_resource type="Resource" id="1"]
 script = ExtResource("2_intent")
-Type = 0
 Name = "Fin Slam"
 Description = "Attack for 6"
 Damage = 6
@@ -48,4 +47,4 @@ Armor = 1
 RewardGold = 12
 AccentColor = Color(0.631373, 0.309804, 0.278431, 1)
 BackgroundColor = Color(0.101961, 0.121569, 0.176471, 1)
-IntentSequence = Array[Resource]([SubResource("1"), SubResource("2"), SubResource("4"), SubResource("5")])
+IntentSequence = Array[ExtResource("2_intent")]([SubResource("1"), SubResource("2"), SubResource("4"), SubResource("5")])

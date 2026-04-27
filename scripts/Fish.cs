@@ -4,6 +4,7 @@ public partial class Fish : Area2D
 {
     [Export] public CardData Card { get; set; } = new();
     [Export] public float Speed { get; set; } = 200.0f;
+    [Export] public float SpeedVariation { get; set; } = 0.25f;
     [Export] public float SineFrequency { get; set; } = 2.0f;
     [Export] public float SineAmplitude { get; set; } = 14.0f;
     [Export] public float SinePhase { get; set; }
@@ -14,12 +15,14 @@ public partial class Fish : Area2D
     [Export] public bool HasAggro { get; set; }
 
     private float _baseY;
+    private float _currentSpeed;
     private Node2D? _hook;
     private bool _active = true;
 
     public override void _Ready()
     {
         _baseY = Position.Y;
+        _currentSpeed = Speed;
         _hook = GetTree().Root.FindChild("Hook_Mechanism", true, false) as Node2D;
         EnsureDefaultCardData();
     }
@@ -55,7 +58,7 @@ public partial class Fish : Area2D
 
     private void UpdateNormalMovement(float elapsed, float delta)
     {
-        Position += new Vector2(Speed * Direction * delta, 0.0f);
+        Position += new Vector2(_currentSpeed * Direction * delta, 0.0f);
         Position = new Vector2(
             Position.X,
             _baseY + Mathf.Sin(elapsed * SineFrequency + SinePhase) * SineAmplitude
@@ -66,6 +69,13 @@ public partial class Fish : Area2D
     {
         if (_hook == null) return;
 
+        // Only aggro if the hook is actually in the water (not at the rod/hands)
+        if (_hook.Position.Y > 640.0f) 
+        {
+            UpdateNormalMovement((float)(Time.GetTicksMsec() / 1000.0f), delta);
+            return;
+        }
+
         Vector2 directionToHook = _hook.GlobalPosition - GlobalPosition;
         if (directionToHook.Length() <= AggroDistance)
         {
@@ -74,12 +84,12 @@ public partial class Fish : Area2D
             
             Position = new Vector2(
                 Mathf.Clamp(Position.X, -140.0f, 1420.0f),
-                Mathf.Clamp(Position.Y, 110.0f, 630.0f)
+                Mathf.Clamp(Position.Y, 120.0f, 580.0f)
             );
         }
         else
         {
-            Position += new Vector2(Speed * Direction * delta, 0.0f);
+            Position += new Vector2(_currentSpeed * Direction * delta, 0.0f);
         }
     }
 
@@ -110,6 +120,11 @@ public partial class Fish : Area2D
         Position = startPos;
         _baseY = startPos.Y;
         Direction = direction;
+        
+        // Randomize speed and phase on each activation
+        _currentSpeed = Speed * (1.0f + (float)GD.RandRange(-SpeedVariation, SpeedVariation));
+        SinePhase = (float)GD.RandRange(0.0f, Mathf.Tau);
+        
         _active = true;
         Visible = true;
         if (GetNodeOrNull<CollisionShape2D>("CollisionShape2D") is CollisionShape2D col)

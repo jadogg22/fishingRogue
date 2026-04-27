@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="BossDefinition" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="BossDefinition" load_steps=10 format=3 uid="uid://r3miskf3o24s"]
 
-[ext_resource type="Script" path="res://scripts/BossDefinition.cs" id="1_boss"]
-[ext_resource type="Script" path="res://scripts/BossIntentData.cs" id="2_intent"]
-[ext_resource type="Script" path="res://scripts/StatusEffectData.cs" id="3_status"]
+[ext_resource type="Script" uid="uid://dshatt1gvhb3w" path="res://scripts/BossDefinition.cs" id="1_boss"]
+[ext_resource type="Script" uid="uid://dhxck6knlb2kg" path="res://scripts/BossIntentData.cs" id="2_intent"]
+[ext_resource type="Script" uid="uid://bi5arqmunhnyi" path="res://scripts/StatusEffectData.cs" id="3_status"]
 
 [sub_resource type="Resource" id="1"]
 script = ExtResource("3_status")
@@ -20,7 +20,6 @@ AppliedStatus = SubResource("1")
 
 [sub_resource type="Resource" id="3"]
 script = ExtResource("2_intent")
-Type = 0
 Name = "Lash Tail"
 Description = "Attack for 7"
 Damage = 7
@@ -55,4 +54,4 @@ Armor = 1
 RewardGold = 18
 AccentColor = Color(0.294118, 0.552941, 0.337255, 1)
 BackgroundColor = Color(0.0862745, 0.152941, 0.109804, 1)
-IntentSequence = Array[Resource]([SubResource("2"), SubResource("3"), SubResource("5"), SubResource("6")])
+IntentSequence = Array[ExtResource("2_intent")]([SubResource("2"), SubResource("3"), SubResource("5"), SubResource("6")])

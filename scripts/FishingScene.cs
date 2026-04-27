@@ -12,19 +12,19 @@ public partial class FishingScene : Node2D
     private const float ReelStepDistance = 42.0f;
     private const float WaterTop = 90.0f;
     private const float WaterBottom = 640.0f;
-    private const float CatchDistance = 58.0f;
+    private const float CatchDistance = 22.0f;
     private const float HorizontalMargin = 110.0f;
-    private const int MaxActiveMainFish = 2;
+    private const int MaxActiveMainFish = 5;
     private static readonly Vector2 RodOrigin = new(640.0f, 680.0f);
     private static readonly AudioStream? CastSound = GD.Load<AudioStream>("res://assets/kenney_ui-pack/Sounds/tap-a.ogg");
     private static readonly AudioStream? CatchSound = GD.Load<AudioStream>("res://assets/kenney_ui-audio/Audio/click4.ogg");
     private static readonly AudioStream? MissSound = GD.Load<AudioStream>("res://assets/kenney_ui-audio/Audio/switch37.ogg");
 
-    [Export] public PackedScene[] MainFishPool { get; set; } = System.Array.Empty<PackedScene>();
-    [Export] public PackedScene[] MinnowPool { get; set; } = System.Array.Empty<PackedScene>();
-    [Export] public PackedScene[] ObstaclePool { get; set; } = System.Array.Empty<PackedScene>();
-    [Export] public PackedScene[] SpecialFishPool { get; set; } = System.Array.Empty<PackedScene>();
-    [Export(PropertyHint.Range, "0,1,0.01")] public float SpecialFishSpawnChance { get; set; } = 0.18f;
+    [Export] public Array<PackedScene> MainFishPool { get; set; } = new();
+    [Export] public Array<PackedScene> MinnowPool { get; set; } = new();
+    [Export] public Array<PackedScene> ObstaclePool { get; set; } = new();
+    [Export] public Array<PackedScene> SpecialFishPool { get; set; } = new();
+    [Export(PropertyHint.Range, "0,1,0.01")] public float SpecialFishSpawnChance { get; set; } = 0.22f;
 
     private int _playerHp = 30;
     private int _roundNumber = 1;
@@ -92,32 +92,44 @@ public partial class FishingScene : Node2D
 
         for (int i = 0; i < MaxActiveMainFish; i++)
         {
-            SpawnRandomFish(GD.Randf() < SpecialFishSpawnChance ? SpecialFishPool : MainFishPool);
+            SpawnRandomFish(GD.Randf() < SpecialFishSpawnChance ? SpecialFishPool : MainFishPool, true);
         }
         
-        foreach (var p in MinnowPool) SpawnRandomFish(new[] { p });
-        foreach (var p in ObstaclePool) SpawnRandomFish(new[] { p });
+        foreach (var p in MinnowPool)
+        {
+             var pool = new Array<PackedScene> { p };
+             SpawnRandomFish(pool, true);
+        }
+        foreach (var p in ObstaclePool)
+        {
+             var pool = new Array<PackedScene> { p };
+             SpawnRandomFish(pool, true);
+        }
     }
 
-    private void SpawnRandomFish(PackedScene[] pool)
+    private void SpawnRandomFish(Array<PackedScene> pool, bool initial = false)
     {
-        if (pool == null || pool.Length == 0 || _fishContainer == null) return;
+        if (pool == null || pool.Count == 0 || _fishContainer == null) return;
 
-        var scene = pool[GD.Randi() % pool.Length];
+        var scene = pool[(int)(GD.Randi() % (uint)pool.Count)];
         var fish = scene.Instantiate<Fish>();
         _fishContainer.AddChild(fish);
         _activeFish.Add(fish);
 
         float direction = GD.Randf() > 0.5f ? 1.0f : -1.0f;
+        float spawnX = initial ? (float)GD.RandRange(50.0f, 1230.0f) : (direction > 0 ? -150.0f : 1430.0f);
+        
         Vector2 spawnPos = new Vector2(
-            direction > 0 ? -110.0f : 1390.0f,
-            (float)GD.RandRange(150.0f, 560.0f)
+            spawnX,
+            (float)GD.RandRange(120.0f, 580.0f)
         );
         fish.Activate(spawnPos, direction);
     }
 
     public override void _Process(double delta)
     {
+        if (_roundEnding) return;
+
         HandleCastInput();
         UpdateTimer((float)delta);
         UpdateHook((float)delta);
@@ -129,6 +141,8 @@ public partial class FishingScene : Node2D
 
     private void UpdateMainFishRespawns(float delta)
     {
+        if (_roundEnding) return;
+
         int activeMainCount = 0;
         foreach (var fish in _activeFish)
         {
@@ -240,6 +254,7 @@ public partial class FishingScene : Node2D
         {
             hook.Position = RodOrigin;
             _manualReelReady = false;
+            FinishRound(BuildMissCard(), hook.Position, "Bare Hook", new Color("#ffd47a"), true);
         }
     }
 
@@ -294,6 +309,17 @@ public partial class FishingScene : Node2D
         _hasCaughtFish = true;
         _castingOut = false;
         _manualReelReady = false;
+
+        // Stop and fade all active fish
+        foreach (var fish in _activeFish)
+        {
+            if (IsInstanceValid(fish))
+            {
+                fish.Deactivate();
+                var tween = fish.CreateTween();
+                tween.TweenProperty(fish, "modulate:a", 0.0f, 0.35f);
+            }
+        }
 
         FxHelper.PlayOneShot(this, missed ? MissSound : CatchSound, missed ? "MissSound" : "CatchSound");
         FxHelper.SpawnRing(this, effectPosition, effectColor);

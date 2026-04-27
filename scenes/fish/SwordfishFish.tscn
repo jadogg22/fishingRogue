@@ -1,7 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3 uid="uid://db0cuw80rl2rj"]
 
-[ext_resource type="Script" path="res://scripts/Fish.cs" id="1_sword"]
-[ext_resource type="Texture2D" path="res://assets/octopus-jellyfish-shark-and-turtle-free-sprite-pixel-art/swardfish/Idle.png" id="2_swordtex"]
+[ext_resource type="Script" uid="uid://b5nk4lfiomjf4" path="res://scripts/Fish.cs" id="1_sword"]
+[ext_resource type="Texture2D" uid="uid://dxcvfcnxlx341" path="res://assets/octopus-jellyfish-shark-and-turtle-free-sprite-pixel-art/swardfish/Idle.png" id="2_swordtex"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qfpio"]
+size = Vector2(100.8, 36)
 
 [sub_resource type="Animation" id="Animation_swim"]
 resource_name = "swim"
@@ -22,11 +25,8 @@ tracks/0/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_fish"]
 _data = {
-"swim": SubResource("Animation_swim")
+&"swim": SubResource("Animation_swim")
 }
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_sword"]
-radius = 20.0
 
 [node name="SwordfishFish" type="Area2D"]
 script = ExtResource("1_sword")
@@ -35,14 +35,16 @@ SineFrequency = 2.5
 SineAmplitude = 12.0
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(3, 3)
 texture = ExtResource("2_swordtex")
 hframes = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("CircleShape2D_sword")
+position = Vector2(21, 0)
+shape = SubResource("RectangleShape2D_qfpio")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {
-"": SubResource("AnimationLibrary_fish")
+&"": SubResource("AnimationLibrary_fish")
 }
 autoplay = "swim"

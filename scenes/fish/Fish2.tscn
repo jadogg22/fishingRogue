@@ -25,23 +25,24 @@ _data = {
 "swim": SubResource("Animation_swim")
 }
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_f"]
-size = Vector2(12, 8)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_f1"]
+size = Vector2(36, 24)
 
 [node name="Fish2" type="Area2D"]
-script = ExtResource("1_f")
-Speed = 100.0
+script = ExtResource("1_f1")
+Speed = 120.0
 IsMainFish = false
 HasAggro = true
 AggroDistance = 220.0
-AggroSpeed = 160.0
+AggroSpeed = 180.0
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-texture = ExtResource("2_t")
+scale = Vector2(3, 3)
+texture = ExtResource("2_t1")
 hframes = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("RectangleShape2D_f")
+shape = SubResource("RectangleShape2D_f1")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {

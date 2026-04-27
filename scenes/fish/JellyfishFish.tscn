@@ -1,7 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3 uid="uid://ckui414bcg2ju"]
 
-[ext_resource type="Script" path="res://scripts/Fish.cs" id="1_fish"]
-[ext_resource type="Texture2D" path="res://assets/octopus-jellyfish-shark-and-turtle-free-sprite-pixel-art/jellyfish/Idle.png" id="2_tex"]
+[ext_resource type="Script" uid="uid://b5nk4lfiomjf4" path="res://scripts/Fish.cs" id="1_fish"]
+[ext_resource type="Texture2D" uid="uid://bhlro4kphriuw" path="res://assets/octopus-jellyfish-shark-and-turtle-free-sprite-pixel-art/jellyfish/Idle.png" id="2_tex"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_fish"]
+radius = 42.004284
 
 [sub_resource type="Animation" id="Animation_swim"]
 resource_name = "swim"
@@ -22,20 +25,17 @@ tracks/0/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_fish"]
 _data = {
-"swim": SubResource("Animation_swim")
+&"swim": SubResource("Animation_swim")
 }
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_fish"]
-radius = 20.0
 
 [node name="JellyfishFish" type="Area2D"]
 script = ExtResource("1_fish")
-Speed = 80.0
-IsMainFish = true
-SineFrequency = 1.5
+Speed = 100.0
+SineFrequency = 1.0
 SineAmplitude = 30.0
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(3, 3)
 texture = ExtResource("2_tex")
 hframes = 4
 
@@ -44,6 +44,6 @@ shape = SubResource("CircleShape2D_fish")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {
-"": SubResource("AnimationLibrary_fish")
+&"": SubResource("AnimationLibrary_fish")
 }
 autoplay = "swim"
