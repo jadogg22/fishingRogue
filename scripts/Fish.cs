@@ -201,7 +201,7 @@ public partial class Fish : Area2D
             return;
         }
 
-        Card = Name switch
+        Card = ((string)Name) switch
         {
             "RedFish" => new CardData
             {
