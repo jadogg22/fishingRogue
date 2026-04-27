@@ -16,7 +16,7 @@ public partial class BossIntentData
             Description = Description,
             Damage = Damage,
             HealAmount = HealAmount,
-            AppliedStatus = AppliedStatus?.Duplicate(),
+            AppliedStatus = AppliedStatus?.DuplicateStatus(),
         };
     }
 }

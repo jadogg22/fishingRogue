@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/Fish.cs" id="1_blue"]
+[ext_resource type="Texture2D" path="res://assets/free-fishing-game-assets-pixel-art-pack/3 Objects/Catch/6.png" id="2_blue_tex"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_blue"]
+size = Vector2(72, 30)
+
+[node name="BlueFish" type="Area2D"]
+script = ExtResource("1_blue")
+SwimTexture = ExtResource("2_blue_tex")
+FrameWidth = 54
+VisualScale = 1.45
+Speed = 290.0
+SineFrequency = 2.0
+SineAmplitude = 14.0
+SinePhase = 1.4
+Direction = -1.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_blue")
+
+[node name="Visual" type="Polygon2D" parent="."]
+color = Color(0.243137, 0.521569, 0.886275, 1)
+polygon = PackedVector2Array(-34, -13, 16, -13, 31, -5, 36, 0, 31, 5, 16, 13, -34, 13)

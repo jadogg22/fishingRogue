@@ -1,5 +1,5 @@
 public partial class PlayerTurnResult
 {
-    public int ActualDamage { get; set; }
-    public string Summary { get; set; } = string.Empty;
+	public int ActualDamage { get; set; }
+	public string Summary { get; set; } = string.Empty;
 }

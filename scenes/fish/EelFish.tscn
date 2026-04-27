@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/Fish.cs" id="1_eel"]
+[ext_resource type="Texture2D" path="res://assets/octopus-jellyfish-shark-and-turtle-free-sprite-pixel-art/eel/Walk.png" id="2_eel_tex"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_eel"]
+size = Vector2(80, 24)
+
+[node name="EelFish" type="Area2D"]
+script = ExtResource("1_eel")
+SwimTexture = ExtResource("2_eel_tex")
+FrameWidth = 48
+VisualScale = 1.45
+Speed = 255.0
+SineFrequency = 3.0
+SineAmplitude = 16.0
+SinePhase = 1.1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_eel")
+
+[node name="Visual" type="Polygon2D" parent="."]
+visible = false

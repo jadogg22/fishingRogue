@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/Fish.cs" id="1_gold"]
+[ext_resource type="Texture2D" path="res://assets/free-fishing-game-assets-pixel-art-pack/3 Objects/Catch/8.png" id="2_gold_tex"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gold"]
+size = Vector2(78, 34)
+
+[node name="GoldFish" type="Area2D"]
+script = ExtResource("1_gold")
+SwimTexture = ExtResource("2_gold_tex")
+FrameWidth = 30
+VisualScale = 2.35
+Speed = 250.0
+SineFrequency = 2.0
+SineAmplitude = 14.0
+SinePhase = 0.7
+Direction = -1.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_gold")
+
+[node name="Visual" type="Polygon2D" parent="."]
+visible = false
+polygon = PackedVector2Array(-37, -15, 13, -15, 30, -6, 39, 0, 30, 6, 13, 15, -37, 15)

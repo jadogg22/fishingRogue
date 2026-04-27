@@ -1,6 +1,18 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://scripts/FishingScene.cs" id="1_jwkrb"]
+[ext_resource type="PackedScene" uid="uid://redfish" path="res://scenes/fish/RedFish.tscn" id="2_red"]
+[ext_resource type="PackedScene" uid="uid://bluefish" path="res://scenes/fish/BlueFish.tscn" id="3_blue"]
+[ext_resource type="PackedScene" uid="uid://minnow" path="res://scenes/fish/Minnow.tscn" id="4_min"]
+[ext_resource type="PackedScene" path="res://scenes/fish/GrayFish.tscn" id="5_gray"]
+[ext_resource type="PackedScene" path="res://scenes/fish/GoldFish.tscn" id="6_gold"]
+[ext_resource type="PackedScene" path="res://scenes/fish/GreenFish.tscn" id="7_green"]
+[ext_resource type="PackedScene" path="res://scenes/fish/AnglerFish.tscn" id="8_angler"]
+[ext_resource type="PackedScene" path="res://scenes/fish/EelFish.tscn" id="9_eel"]
+[ext_resource type="PackedScene" path="res://scenes/fish/JellyfishFish.tscn" id="10_jelly"]
+[ext_resource type="PackedScene" path="res://scenes/fish/OctopusFish.tscn" id="11_octo"]
+[ext_resource type="PackedScene" path="res://scenes/fish/SwordfishFish.tscn" id="12_sword"]
+[ext_resource type="PackedScene" path="res://scenes/fish/TurtleFish.tscn" id="13_turtle"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hook"]
 size = Vector2(28, 28)
@@ -34,6 +46,11 @@ size = Vector2(58, 26)
 
 [node name="FishingScene" type="Node2D"]
 script = ExtResource("1_jwkrb")
+MainFishPool = Array[PackedScene]([ExtResource("2_red"), ExtResource("3_blue"), ExtResource("5_gray"), ExtResource("6_gold"), ExtResource("7_green")])
+MinnowPool = Array[PackedScene]([ExtResource("4_min")])
+ObstaclePool = Array[PackedScene]([])
+SpecialFishPool = Array[PackedScene]([ExtResource("8_angler"), ExtResource("9_eel"), ExtResource("10_jelly"), ExtResource("11_octo"), ExtResource("12_sword"), ExtResource("13_turtle")])
+SpecialFishSpawnChance = 0.18
 
 [node name="Background_Water" type="ColorRect" parent="."]
 offset_right = 1280.0
@@ -121,93 +138,3 @@ color = Color(0.972549, 0.972549, 0.972549, 1)
 polygon = PackedVector2Array(-8, -12, 8, -12, 8, 14, 1, 14, 1, 4, -5, 4, -8, 9)
 
 [node name="FishContainer" type="Node2D" parent="."]
-
-[node name="FishRed" type="Area2D" parent="FishContainer"]
-position = Vector2(180, 230)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="FishContainer/FishRed"]
-shape = SubResource("RectangleShape2D_red")
-
-[node name="Visual" type="Polygon2D" parent="FishContainer/FishRed"]
-color = Color(0.913725, 0.313726, 0.270588, 1)
-polygon = PackedVector2Array(-34, -13, 16, -13, 31, -5, 36, 0, 31, 5, 16, 13, -34, 13)
-
-[node name="FishBlue" type="Area2D" parent="FishContainer"]
-position = Vector2(1120, 360)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="FishContainer/FishBlue"]
-shape = SubResource("RectangleShape2D_blue")
-
-[node name="Visual" type="Polygon2D" parent="FishContainer/FishBlue"]
-color = Color(0.243137, 0.521569, 0.886275, 1)
-polygon = PackedVector2Array(-34, -13, 16, -13, 31, -5, 36, 0, 31, 5, 16, 13, -34, 13)
-
-[node name="FishGray" type="Area2D" parent="FishContainer"]
-position = Vector2(540, 510)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="FishContainer/FishGray"]
-shape = SubResource("RectangleShape2D_gray")
-
-[node name="Visual" type="Polygon2D" parent="FishContainer/FishGray"]
-color = Color(0.729412, 0.745098, 0.780392, 1)
-polygon = PackedVector2Array(-34, -13, 16, -13, 31, -5, 36, 0, 31, 5, 16, 13, -34, 13)
-
-[node name="FishGold" type="Area2D" parent="FishContainer"]
-position = Vector2(980, 170)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="FishContainer/FishGold"]
-shape = SubResource("RectangleShape2D_gold")
-
-[node name="Visual" type="Polygon2D" parent="FishContainer/FishGold"]
-color = Color(0.933333, 0.741176, 0.254902, 1)
-polygon = PackedVector2Array(-37, -15, 13, -15, 30, -6, 39, 0, 30, 6, 13, 15, -37, 15)
-
-[node name="FishGreen" type="Area2D" parent="FishContainer"]
-position = Vector2(260, 430)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="FishContainer/FishGreen"]
-shape = SubResource("RectangleShape2D_green")
-
-[node name="Visual" type="Polygon2D" parent="FishContainer/FishGreen"]
-color = Color(0.270588, 0.764706, 0.490196, 1)
-polygon = PackedVector2Array(-37, -15, 13, -15, 30, -6, 39, 0, 30, 6, 13, 15, -37, 15)
-
-[node name="MinnowA" type="Area2D" parent="FishContainer"]
-position = Vector2(860, 580)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="FishContainer/MinnowA"]
-shape = SubResource("RectangleShape2D_minnow_a")
-
-[node name="Visual" type="Polygon2D" parent="FishContainer/MinnowA"]
-color = Color(0.858824, 0.886275, 0.905882, 1)
-polygon = PackedVector2Array(-20, -8, 10, -8, 18, -3, 21, 0, 18, 3, 10, 8, -20, 8)
-
-[node name="MinnowB" type="Area2D" parent="FishContainer"]
-position = Vector2(1040, 470)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="FishContainer/MinnowB"]
-shape = SubResource("RectangleShape2D_minnow_b")
-
-[node name="Visual" type="Polygon2D" parent="FishContainer/MinnowB"]
-color = Color(0.768627, 0.854902, 0.913725, 1)
-polygon = PackedVector2Array(-20, -8, 10, -8, 18, -3, 21, 0, 18, 3, 10, 8, -20, 8)
-
-[node name="ObstacleA" type="Area2D" parent="FishContainer"]
-position = Vector2(930, 310)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="FishContainer/ObstacleA"]
-shape = SubResource("RectangleShape2D_obstacle_a")
-
-[node name="Visual" type="Polygon2D" parent="FishContainer/ObstacleA"]
-color = Color(0.509804, 0.619608, 0.317647, 1)
-polygon = PackedVector2Array(-28, -11, 12, -11, 23, -5, 29, 0, 23, 5, 12, 11, -28, 11)
-
-[node name="ObstacleB" type="Area2D" parent="FishContainer"]
-position = Vector2(240, 250)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="FishContainer/ObstacleB"]
-shape = SubResource("RectangleShape2D_obstacle_b")
-
-[node name="Visual" type="Polygon2D" parent="FishContainer/ObstacleB"]
-color = Color(0.462745, 0.552941, 0.286275, 1)
-polygon = PackedVector2Array(-28, -11, 12, -11, 23, -5, 29, 0, 23, 5, 12, 11, -28, 11)

@@ -1,13 +1,17 @@
+using Godot;
 using Godot.Collections;
 
-public partial class CardData
+[GlobalClass]
+public partial class CardData : Resource
 {
-    public string Name { get; set; } = string.Empty;
-    public string Fish { get; set; } = string.Empty;
-    public int Damage { get; set; }
-    public CombatTarget DamageTarget { get; set; } = CombatTarget.Enemy;
-    public StatusEffectData StatusEffect { get; set; } = new();
-    public CombatTarget StatusTarget { get; set; } = CombatTarget.Enemy;
+    [Export] public string Name { get; set; } = string.Empty;
+    [Export] public string Fish { get; set; } = string.Empty;
+    [Export] public int Damage { get; set; }
+    [Export] public CombatTarget DamageTarget { get; set; } = CombatTarget.Enemy;
+    [Export] public StatusEffectData StatusEffect { get; set; } = new();
+    [Export] public CombatTarget StatusTarget { get; set; } = CombatTarget.Enemy;
+
+    public CardData() { }
 
     public Dictionary ToDictionary()
     {

@@ -8,15 +8,15 @@ public partial class EnemyStateManager
 
     public int CurrentHp { get; private set; }
     public int MaxHp { get; }
-    public int BaseAttackDamage { get; }
+    public int Armor { get; }
     public BossIntentData CurrentIntent { get; private set; }
 
-    public EnemyStateManager(int currentHp, int maxHp, int baseAttackDamage, int battleNumber, Array<Dictionary>? serializedStatuses = null)
+    public EnemyStateManager(int currentHp, BossDefinition bossDefinition, int combatRoundNumber, Array<Dictionary>? serializedStatuses = null)
     {
         CurrentHp = currentHp;
-        MaxHp = maxHp;
-        BaseAttackDamage = baseAttackDamage;
-        CurrentIntent = BuildIntentForBattle(battleNumber);
+        MaxHp = bossDefinition.MaxHp;
+        Armor = bossDefinition.Armor;
+        CurrentIntent = bossDefinition.GetIntentForRound(combatRoundNumber);
 
         if (serializedStatuses == null)
         {
@@ -29,9 +29,11 @@ public partial class EnemyStateManager
         }
     }
 
-    public void DealDamage(int amount)
+    public int DealDamage(int amount)
     {
-        CurrentHp = Mathf.Max(0, CurrentHp - amount);
+        var actualDamage = Mathf.Max(0, amount - Armor);
+        CurrentHp = Mathf.Max(0, CurrentHp - actualDamage);
+        return actualDamage;
     }
 
     public void Heal(int amount)
@@ -48,7 +50,7 @@ public partial class EnemyStateManager
 
         if (status.Type == StatusEffectType.Stun)
         {
-            _statuses.Add(status.Duplicate());
+            _statuses.Add(status.DuplicateStatus());
             return;
         }
 
@@ -64,7 +66,7 @@ public partial class EnemyStateManager
             return;
         }
 
-        _statuses.Add(status.Duplicate());
+        _statuses.Add(status.DuplicateStatus());
     }
 
     public EnemyTurnResult ResolveTurn(PlayerStateManager playerState)
@@ -128,6 +130,11 @@ public partial class EnemyStateManager
         }
 
         var summaries = new List<string>();
+        if (Armor > 0)
+        {
+            summaries.Add($"Armor {Armor}");
+        }
+
         foreach (var status in _statuses)
         {
             var summary = status.BuildSummary();
@@ -240,57 +247,4 @@ public partial class EnemyStateManager
         }
     }
 
-    private BossIntentData BuildIntentForBattle(int battleNumber)
-    {
-        return (battleNumber % 5) switch
-        {
-            1 => new BossIntentData
-            {
-                Type = BossIntentType.Attack,
-                Name = "Fin Slam",
-                Description = $"Attack for {BaseAttackDamage}",
-                Damage = BaseAttackDamage,
-            },
-            2 => new BossIntentData
-            {
-                Type = BossIntentType.HeavyAttack,
-                Name = "Undertow Crush",
-                Description = $"Heavy attack for {BaseAttackDamage + 3}",
-                Damage = BaseAttackDamage + 3,
-            },
-            3 => new BossIntentData
-            {
-                Type = BossIntentType.VenomSpit,
-                Name = "Venom Spit",
-                Description = $"Attack for {BaseAttackDamage - 1} and apply Poison 1",
-                Damage = BaseAttackDamage - 1,
-                AppliedStatus = new StatusEffectData
-                {
-                    Type = StatusEffectType.Poison,
-                    Potency = 1,
-                    Duration = 2,
-                }
-            },
-            4 => new BossIntentData
-            {
-                Type = BossIntentType.CripplingRoar,
-                Name = "Crippling Roar",
-                Description = $"Attack for {BaseAttackDamage - 2} and apply Weaken 2",
-                Damage = BaseAttackDamage - 2,
-                AppliedStatus = new StatusEffectData
-                {
-                    Type = StatusEffectType.Weaken,
-                    Potency = 2,
-                    Duration = 2,
-                }
-            },
-            _ => new BossIntentData
-            {
-                Type = BossIntentType.Recover,
-                Name = "Second Wind",
-                Description = "Recover 5 HP",
-                HealAmount = 5,
-            },
-        };
-    }
 }

@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/Fish.cs" id="1_turtle"]
+[ext_resource type="Texture2D" path="res://assets/octopus-jellyfish-shark-and-turtle-free-sprite-pixel-art/turtle/Walk.png" id="2_turtle_tex"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_turtle"]
+size = Vector2(74, 34)
+
+[node name="TurtleFish" type="Area2D"]
+script = ExtResource("1_turtle")
+SwimTexture = ExtResource("2_turtle_tex")
+FrameWidth = 48
+VisualScale = 1.45
+Speed = 150.0
+SineFrequency = 1.9
+SineAmplitude = 14.0
+SinePhase = 1.8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_turtle")
+
+[node name="Visual" type="Polygon2D" parent="."]
+visible = false

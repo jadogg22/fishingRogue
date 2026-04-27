@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public partial class FishingScene : Node2D
 {
     [Signal]
-    public delegate void FishCaughtEventHandler(Dictionary cardData);
+    public delegate void FishCaughtEventHandler(CardData cardData);
 
     private const float RoundDuration = 30.0f;
     private const float CastSpeed = 900.0f;
@@ -14,236 +14,65 @@ public partial class FishingScene : Node2D
     private const float WaterBottom = 640.0f;
     private const float CatchDistance = 58.0f;
     private const float HorizontalMargin = 110.0f;
-    private const float CastScatterRadius = 42.0f;
-    private const float MinnowAggroDistance = 210.0f;
-    private const float ObstacleAggroDistance = 260.0f;
-    private const float LureSteerSpeed = 90.0f;
     private const int MaxActiveMainFish = 2;
-    private const float MaxSteerOffset = 18.0f;
+    private const int MaxActiveSpecialFish = 1;
     private static readonly Vector2 RodOrigin = new(640.0f, 680.0f);
+    private static readonly AudioStream? CastSound = GD.Load<AudioStream>("res://assets/kenney_ui-pack/Sounds/tap-a.ogg");
+    private static readonly AudioStream? CatchSound = GD.Load<AudioStream>("res://assets/kenney_ui-audio/Audio/click4.ogg");
+    private static readonly AudioStream? MissSound = GD.Load<AudioStream>("res://assets/kenney_ui-audio/Audio/switch37.ogg");
+
+    [Export] public PackedScene[] MainFishPool { get; set; } = System.Array.Empty<PackedScene>();
+    [Export] public PackedScene[] MinnowPool { get; set; } = System.Array.Empty<PackedScene>();
+    [Export] public PackedScene[] ObstaclePool { get; set; } = System.Array.Empty<PackedScene>();
+    [Export] public PackedScene[] SpecialFishPool { get; set; } = System.Array.Empty<PackedScene>();
+    [Export(PropertyHint.Range, "0,1,0.01")] public float SpecialFishSpawnChance { get; set; } = 0.18f;
 
     private int _playerHp = 30;
     private int _roundNumber = 1;
+    private int _gold;
     private float _timeLeft = RoundDuration;
     private bool _castingOut;
     private bool _manualReelReady;
     private bool _hasCaughtFish;
+    private bool _roundEnding;
     private bool _castPressedLastFrame;
     private bool _pendingClick;
     private Vector2 _castTarget = RodOrigin;
+    private string _targetBossName = string.Empty;
 
-    private readonly List<Area2D> _fishNodes = new();
-    private readonly List<Area2D> _minnowNodes = new();
-    private readonly List<Area2D> _obstacleNodes = new();
-    private readonly List<Area2D> _mainFishNodes = new();
-    private readonly System.Collections.Generic.Dictionary<string, float> _fishBaseY = new();
-    private readonly System.Collections.Generic.Dictionary<string, CardData> _fishCards = new();
-    private readonly System.Collections.Generic.Dictionary<string, Dictionary> _fishMotionData = new();
-    private readonly System.Collections.Generic.Dictionary<string, float> _fishRespawnTimers = new();
-    private readonly System.Collections.Generic.Dictionary<string, bool> _fishActiveStates = new();
+    private Node2D? _fishContainer;
+    private readonly List<Fish> _activeFish = new();
+    private float _specialSpawnCooldown;
 
     public override void _Ready()
     {
-        _fishNodes.Add(GetNode<Area2D>("FishContainer/FishRed"));
-        _fishNodes.Add(GetNode<Area2D>("FishContainer/FishBlue"));
-        _fishNodes.Add(GetNode<Area2D>("FishContainer/FishGray"));
-        _fishNodes.Add(GetNode<Area2D>("FishContainer/FishGold"));
-        _fishNodes.Add(GetNode<Area2D>("FishContainer/FishGreen"));
-        _fishNodes.Add(GetNode<Area2D>("FishContainer/MinnowA"));
-        _fishNodes.Add(GetNode<Area2D>("FishContainer/MinnowB"));
-        _fishNodes.Add(GetNode<Area2D>("FishContainer/ObstacleA"));
-        _fishNodes.Add(GetNode<Area2D>("FishContainer/ObstacleB"));
-        _minnowNodes.Add(GetNode<Area2D>("FishContainer/MinnowA"));
-        _minnowNodes.Add(GetNode<Area2D>("FishContainer/MinnowB"));
-        _obstacleNodes.Add(GetNode<Area2D>("FishContainer/ObstacleA"));
-        _obstacleNodes.Add(GetNode<Area2D>("FishContainer/ObstacleB"));
-        _mainFishNodes.Add(GetNode<Area2D>("FishContainer/FishRed"));
-        _mainFishNodes.Add(GetNode<Area2D>("FishContainer/FishBlue"));
-        _mainFishNodes.Add(GetNode<Area2D>("FishContainer/FishGray"));
-        _mainFishNodes.Add(GetNode<Area2D>("FishContainer/FishGold"));
-        _mainFishNodes.Add(GetNode<Area2D>("FishContainer/FishGreen"));
-
-        _fishCards["FishRed"] = new CardData
+        _fishContainer = GetNode<Node2D>("FishContainer");
+        // Clear existing placeholder fish from the TSCN if any
+        foreach (Node child in _fishContainer.GetChildren())
         {
-            Name = "Fire Strike",
-            Fish = "Red Fish",
-            Damage = 8,
-            DamageTarget = CombatTarget.Enemy,
-        };
-        _fishMotionData["FishRed"] = new Dictionary
-        {
-            { "speed", 230.0f },
-            { "phase", 0.0f },
-            { "direction", 1.0f },
-        };
-
-        _fishCards["FishBlue"] = new CardData
-        {
-            Name = "Tide Crash",
-            Fish = "Blue Fish",
-            Damage = 5,
-            DamageTarget = CombatTarget.Enemy,
-            StatusTarget = CombatTarget.Enemy,
-            StatusEffect = new StatusEffectData
-            {
-                Type = StatusEffectType.Stun,
-                Potency = 0,
-                Duration = 1,
-            }
-        };
-        _fishMotionData["FishBlue"] = new Dictionary
-        {
-            { "speed", 290.0f },
-            { "phase", 1.4f },
-            { "direction", -1.0f },
-        };
-
-        _fishCards["FishGray"] = new CardData
-        {
-            Name = "River Guard",
-            Fish = "Gray Fish",
-            Damage = 3,
-            DamageTarget = CombatTarget.Enemy,
-            StatusTarget = CombatTarget.Player,
-            StatusEffect = new StatusEffectData
-            {
-                Type = StatusEffectType.Guard,
-                Potency = 2,
-                Duration = 1,
-            }
-        };
-        _fishMotionData["FishGray"] = new Dictionary
-        {
-            { "speed", 180.0f },
-            { "phase", 2.2f },
-            { "direction", 1.0f },
-        };
-
-        _fishCards["FishGold"] = new CardData
-        {
-            Name = "Sunscale Focus",
-            Fish = "Gold Fish",
-            Damage = 4,
-            DamageTarget = CombatTarget.Enemy,
-            StatusTarget = CombatTarget.Player,
-            StatusEffect = new StatusEffectData
-            {
-                Type = StatusEffectType.Focus,
-                Potency = 2,
-                Duration = 2,
-            }
-        };
-        _fishMotionData["FishGold"] = new Dictionary
-        {
-            { "speed", 250.0f },
-            { "phase", 0.7f },
-            { "direction", -1.0f },
-        };
-
-        _fishCards["FishGreen"] = new CardData
-        {
-            Name = "Reed Ripper",
-            Fish = "Green Fish",
-            Damage = 6,
-            DamageTarget = CombatTarget.Enemy,
-            StatusTarget = CombatTarget.Enemy,
-            StatusEffect = new StatusEffectData
-            {
-                Type = StatusEffectType.Poison,
-                Potency = 2,
-                Duration = 3,
-            }
-        };
-        _fishMotionData["FishGreen"] = new Dictionary
-        {
-            { "speed", 210.0f },
-            { "phase", 2.8f },
-            { "direction", 1.0f },
-        };
-
-        _fishCards["MinnowA"] = new CardData
-        {
-            Name = "Snagged Minnow",
-            Fish = "Minnow",
-            Damage = 1,
-            DamageTarget = CombatTarget.Enemy,
-        };
-        _fishMotionData["MinnowA"] = new Dictionary
-        {
-            { "speed", 88.0f },
-            { "phase", 0.8f },
-            { "direction", -1.0f },
-            { "aggro_speed", 150.0f },
-        };
-
-        _fishCards["MinnowB"] = new CardData
-        {
-            Name = "Snagged Minnow",
-            Fish = "Minnow",
-            Damage = 1,
-            DamageTarget = CombatTarget.Enemy,
-        };
-        _fishMotionData["MinnowB"] = new Dictionary
-        {
-            { "speed", 96.0f },
-            { "phase", 2.6f },
-            { "direction", 1.0f },
-            { "aggro_speed", 160.0f },
-        };
-
-        _fishCards["ObstacleA"] = new CardData
-        {
-            Name = "Snagged Weed Pike",
-            Fish = "Obstacle Fish",
-            Damage = 3,
-            DamageTarget = CombatTarget.Enemy,
-        };
-        _fishMotionData["ObstacleA"] = new Dictionary
-        {
-            { "speed", 108.0f },
-            { "phase", 0.5f },
-            { "direction", -1.0f },
-            { "aggro_speed", 118.0f },
-        };
-
-        _fishCards["ObstacleB"] = new CardData
-        {
-            Name = "Snagged Weed Pike",
-            Fish = "Obstacle Fish",
-            Damage = 3,
-            DamageTarget = CombatTarget.Enemy,
-        };
-        _fishMotionData["ObstacleB"] = new Dictionary
-        {
-            { "speed", 116.0f },
-            { "phase", 2.1f },
-            { "direction", 1.0f },
-            { "aggro_speed", 126.0f },
-        };
-
-        foreach (var fish in _fishNodes)
-        {
-            _fishBaseY[fish.Name.ToString()] = fish.Position.Y;
-            _fishRespawnTimers[fish.Name.ToString()] = 0.0f;
-            _fishActiveStates[fish.Name.ToString()] = true;
+            child.QueueFree();
         }
 
-        InitializeMainFishSpawns();
         UpdateLabels();
     }
 
-    public void StartRound(int currentPlayerHp, int currentRound)
+    public void StartRound(int currentPlayerHp, int currentRound, string bossName, int gold)
     {
         _playerHp = currentPlayerHp;
         _roundNumber = currentRound;
+        _targetBossName = bossName;
+        _gold = gold;
         _timeLeft = RoundDuration;
         _castingOut = false;
         _manualReelReady = false;
         _hasCaughtFish = false;
+        _roundEnding = false;
+        _specialSpawnCooldown = 2.5f;
         _castPressedLastFrame = false;
         _pendingClick = false;
         _castTarget = RodOrigin;
-        ResetMainFishSpawns();
+
+        ResetFish();
 
         var hook = GetNode<Area2D>("Hook_Mechanism");
         hook.Position = RodOrigin;
@@ -257,15 +86,110 @@ public partial class FishingScene : Node2D
         UpdateLabels();
     }
 
+    private void ResetFish()
+    {
+        foreach (var fish in _activeFish)
+        {
+            if (IsInstanceValid(fish)) fish.QueueFree();
+        }
+        _activeFish.Clear();
+
+        // Spawn initial fish
+        for (int i = 0; i < MaxActiveMainFish; i++)
+        {
+            SpawnRandomFish(MainFishPool);
+        }
+        
+        // Spawn minnows and obstacles
+        foreach (var p in MinnowPool) SpawnRandomFish(new[] { p });
+        foreach (var p in ObstaclePool) SpawnRandomFish(new[] { p });
+    }
+
+    private void SpawnRandomFish(PackedScene[] pool)
+    {
+        if (pool == null || pool.Length == 0 || _fishContainer == null) return;
+
+        var scene = pool[GD.Randi() % pool.Length];
+        var fish = scene.Instantiate<Fish>();
+        _fishContainer.AddChild(fish);
+        _activeFish.Add(fish);
+
+        float direction = GD.Randf() > 0.5f ? 1.0f : -1.0f;
+        Vector2 spawnPos = new Vector2(
+            direction > 0 ? -70.0f : 1350.0f,
+            (float)GD.RandRange(150.0f, 560.0f)
+        );
+        fish.Activate(spawnPos, direction);
+    }
+
     public override void _Process(double delta)
     {
         HandleCastInput();
         UpdateTimer((float)delta);
         UpdateHook((float)delta);
-        UpdateFishMotion((float)delta);
         UpdateCastPreview();
         UpdateRodVisual();
         UpdateLabels();
+        
+        // Custom respawn logic for main fish if they deactivated
+        UpdateMainFishRespawns((float)delta);
+        UpdateSpecialFishSpawns((float)delta);
+    }
+
+    private void UpdateMainFishRespawns(float delta)
+    {
+        int activeMainCount = 0;
+        foreach (var fish in _activeFish)
+        {
+            if (IsInstanceValid(fish) && fish.IsMainFish && fish.Visible)
+                activeMainCount++;
+        }
+
+        if (activeMainCount < MaxActiveMainFish)
+        {
+            SpawnRandomFish(MainFishPool);
+        }
+    }
+
+    private void UpdateSpecialFishSpawns(float delta)
+    {
+        if (SpecialFishPool == null || SpecialFishPool.Length == 0)
+        {
+            return;
+        }
+
+        _specialSpawnCooldown = Mathf.Max(0.0f, _specialSpawnCooldown - delta);
+        if (_specialSpawnCooldown > 0.0f)
+        {
+            return;
+        }
+
+        var activeSpecialCount = 0;
+        foreach (var fish in _activeFish)
+        {
+            if (!IsInstanceValid(fish) || !fish.Visible)
+            {
+                continue;
+            }
+
+            if (fish.IsMainFish && IsSpecialFishName(fish.Name))
+            {
+                activeSpecialCount += 1;
+            }
+        }
+
+        if (activeSpecialCount >= MaxActiveSpecialFish)
+        {
+            _specialSpawnCooldown = 2.0f;
+            return;
+        }
+
+        if (GD.Randf() <= SpecialFishSpawnChance)
+        {
+            SpawnRandomFish(SpecialFishPool);
+        }
+
+        _specialSpawnCooldown = (float)GD.RandRange(3.0f, 6.0f);
     }
 
     public override void _Input(InputEvent @event)
@@ -278,16 +202,12 @@ public partial class FishingScene : Node2D
 
     private void UpdateTimer(float delta)
     {
-        if (_hasCaughtFish)
-        {
-            return;
-        }
+        if (_hasCaughtFish) return;
 
         _timeLeft = Mathf.Max(0.0f, _timeLeft - delta);
         if (Mathf.IsZeroApprox(_timeLeft))
         {
-            _hasCaughtFish = true;
-            EmitSignal(SignalName.FishCaught, BuildMissCard());
+            FinishRound(BuildMissCard(), GetNode<Area2D>("Hook_Mechanism").Position, "Bare Hook", new Color("#ffd47a"), true);
         }
     }
 
@@ -302,10 +222,12 @@ public partial class FishingScene : Node2D
             {
                 _castTarget = BuildCastTarget();
                 _castingOut = true;
+                FxHelper.PlayOneShot(this, CastSound, "CastSound");
             }
             else if (_manualReelReady)
             {
                 ReelStep();
+                FxHelper.PlayOneShot(this, CastSound, "ReelSound");
             }
         }
 
@@ -335,92 +257,13 @@ public partial class FishingScene : Node2D
         };
     }
 
-    private void UpdateFishMotion(float delta)
-    {
-        var elapsed = Time.GetTicksMsec() / 1000.0f;
-        UpdateMainFishRespawns(delta);
-
-        foreach (var fish in _fishNodes)
-        {
-            if (!IsInstanceValid(fish))
-            {
-                continue;
-            }
-
-            var fishName = fish.Name.ToString();
-            var data = _fishMotionData[fishName];
-
-            if (_minnowNodes.Contains(fish))
-            {
-                UpdateMinnowMotion(fish, data, elapsed, delta);
-                continue;
-            }
-
-            if (_obstacleNodes.Contains(fish))
-            {
-                UpdateObstacleMotion(fish, data, elapsed, delta);
-                continue;
-            }
-
-            if (!_fishActiveStates[fishName])
-            {
-                continue;
-            }
-
-            var speed = (float)data["speed"];
-            var phase = (float)data["phase"];
-            var direction = (float)data["direction"];
-
-            fish.Position += new Vector2(speed * direction * delta, 0.0f);
-            fish.Position = new Vector2(
-                fish.Position.X,
-                _fishBaseY[fishName] + Mathf.Sin(elapsed * 2.0f + phase) * 14.0f
-            );
-
-            if (fish.Position.X < -90.0f || fish.Position.X > 1370.0f)
-            {
-                DeactivateFish(fishName, (float)GD.RandRange(1.3f, 3.0f));
-            }
-        }
-    }
-
-    private void CheckForCatch()
-    {
-        if (_hasCaughtFish)
-        {
-            return;
-        }
-
-        var hook = GetNode<Area2D>("Hook_Mechanism");
-        foreach (var fish in _fishNodes)
-        {
-            if (!IsInstanceValid(fish))
-            {
-                continue;
-            }
-
-            if (hook.GlobalPosition.DistanceTo(fish.GlobalPosition) <= CatchDistance)
-            {
-                _hasCaughtFish = true;
-                _castingOut = false;
-                _manualReelReady = false;
-                if (_mainFishNodes.Contains(fish))
-                {
-                    DeactivateFish(fish.Name.ToString(), (float)GD.RandRange(1.8f, 3.2f));
-                }
-                EmitSignal(SignalName.FishCaught, _fishCards[fish.Name.ToString()].ToDictionary());
-                return;
-            }
-        }
-    }
-
     private void UpdateLabels()
     {
-        GetNode<Label>("CanvasLayer/UI_Container/VBox_Stats/Label_PlayerHP").Text = $"Round {_roundNumber}  |  Player HP: {_playerHp}/30";
-        GetNode<Label>("CanvasLayer/UI_Container/VBox_Stats/Label_Timer").Text = $"Time: {_timeLeft:0.0}";
+        GetNode<Label>("CanvasLayer/UI_Container/VBox_Stats/Label_PlayerHP").Text = $"Round {_roundNumber}  |  Player HP: {_playerHp}/30  |  Gold {_gold}";
+        GetNode<Label>("CanvasLayer/UI_Container/VBox_Stats/Label_Timer").Text = $"Boss: {_targetBossName}  |  Time: {_timeLeft:0.0}";
     }
 
-    private static Dictionary BuildMissCard()
+    private static CardData BuildMissCard()
     {
         return new CardData
         {
@@ -428,22 +271,7 @@ public partial class FishingScene : Node2D
             Fish = "No Catch",
             Damage = 2,
             DamageTarget = CombatTarget.Enemy,
-        }.ToDictionary();
-    }
-
-    private static float WrapFishX(float x, float direction)
-    {
-        if (direction > 0.0f && x > 1280.0f + HorizontalMargin)
-        {
-            return -HorizontalMargin;
-        }
-
-        if (direction < 0.0f && x < -HorizontalMargin)
-        {
-            return 1280.0f + HorizontalMargin;
-        }
-
-        return x;
+        };
     }
 
     private void ReelStep()
@@ -456,10 +284,7 @@ public partial class FishingScene : Node2D
         ApplyLureSteer(hook, 0.12f);
         CheckForCatchAlongSegment(previousPosition, nextPosition);
 
-        if (_hasCaughtFish)
-        {
-            return;
-        }
+        if (_hasCaughtFish) return;
 
         if (hook.Position.DistanceTo(RodOrigin) <= 6.0f)
         {
@@ -470,29 +295,16 @@ public partial class FishingScene : Node2D
 
     private void CheckForCatchAlongSegment(Vector2 startPoint, Vector2 endPoint)
     {
-        if (_hasCaughtFish)
-        {
-            return;
-        }
+        if (_hasCaughtFish) return;
 
-        foreach (var fish in _fishNodes)
+        foreach (var fish in _activeFish)
         {
-            if (!IsInstanceValid(fish))
-            {
-                continue;
-            }
+            if (!IsInstanceValid(fish) || !fish.Visible) continue;
 
             var closestPoint = Geometry2D.GetClosestPointToSegment(fish.GlobalPosition, startPoint, endPoint);
             if (closestPoint.DistanceTo(fish.GlobalPosition) <= CatchDistance)
             {
-                _hasCaughtFish = true;
-                _castingOut = false;
-                _manualReelReady = false;
-                if (_mainFishNodes.Contains(fish))
-                {
-                    DeactivateFish(fish.Name.ToString(), (float)GD.RandRange(1.8f, 3.2f));
-                }
-                EmitSignal(SignalName.FishCaught, _fishCards[fish.Name.ToString()].ToDictionary());
+                FinishRound(fish.Card, fish.Position, fish.Card.Name, new Color("#86ebff"));
                 return;
             }
         }
@@ -513,22 +325,56 @@ public partial class FishingScene : Node2D
         if (target.DistanceTo(RodOrigin) < 80.0f)
         {
             var direction = (target - RodOrigin).Normalized();
-            if (direction == Vector2.Zero)
-            {
-                direction = new Vector2(1.0f, -0.3f).Normalized();
-            }
+            if (direction == Vector2.Zero) direction = new Vector2(1.0f, -0.3f).Normalized();
             target = RodOrigin + direction * 80.0f;
         }
 
-        var scatterOffset = new Vector2(
-            (float)GD.RandRange(-CastScatterRadius, CastScatterRadius),
-            (float)GD.RandRange(-CastScatterRadius, CastScatterRadius)
-        );
-        target += scatterOffset;
+        target += new Vector2((float)GD.RandRange(-42.0f, 42.0f), (float)GD.RandRange(-42.0f, 42.0f));
         target.X = Mathf.Clamp(target.X, 120.0f, 1180.0f);
         target.Y = Mathf.Clamp(target.Y, WaterTop + 20.0f, WaterBottom - 30.0f);
 
         return target;
+    }
+
+    private async void FinishRound(CardData cardData, Vector2 effectPosition, string effectText, Color effectColor, bool missed = false)
+    {
+        if (_roundEnding) return;
+
+        _roundEnding = true;
+        _hasCaughtFish = true;
+        _castingOut = false;
+        _manualReelReady = false;
+
+        FxHelper.PlayOneShot(this, missed ? MissSound : CatchSound, missed ? "MissSound" : "CatchSound");
+        FxHelper.SpawnRing(this, effectPosition, effectColor);
+        ShowFloatingCatchText(effectPosition, effectText, effectColor);
+        FxHelper.FlashCanvasItem(GetNode<CanvasItem>("Hook_Mechanism/Hook_Visual"), Colors.White);
+
+        await ToSignal(GetTree().CreateTimer(0.45f), SceneTreeTimer.SignalName.Timeout);
+        EmitSignal(SignalName.FishCaught, cardData);
+    }
+
+    private void ShowFloatingCatchText(Vector2 worldPosition, string text, Color color)
+    {
+        var label = new Label
+        {
+            Text = text,
+            Position = worldPosition + new Vector2(-72.0f, -34.0f),
+        };
+        label.AddThemeColorOverride("font_color", color);
+        label.AddThemeFontSizeOverride("font_size", 20);
+        AddChild(label);
+
+        var tween = label.CreateTween();
+        tween.SetParallel(true);
+        tween.TweenProperty(label, "position", label.Position + new Vector2(0.0f, -36.0f), 0.45f);
+        tween.TweenProperty(label, "modulate:a", 0.0f, 0.45f);
+        tween.Finished += label.QueueFree;
+    }
+
+    private static bool IsSpecialFishName(string fishName)
+    {
+        return fishName is "AnglerFish" or "EelFish" or "JellyfishFish" or "OctopusFish" or "SwordfishFish" or "TurtleFish";
     }
 
     private void UpdateCastPreview()
@@ -549,182 +395,19 @@ public partial class FishingScene : Node2D
         if (target.DistanceTo(RodOrigin) < 80.0f)
         {
             var direction = (target - RodOrigin).Normalized();
-            if (direction == Vector2.Zero)
-            {
-                direction = new Vector2(1.0f, -0.3f).Normalized();
-            }
+            if (direction == Vector2.Zero) direction = new Vector2(1.0f, -0.3f).Normalized();
             target = RodOrigin + direction * 80.0f;
         }
 
         return target;
     }
 
-    private void UpdateMinnowMotion(Area2D minnow, Dictionary data, float elapsed, float delta)
-    {
-        var hook = GetNode<Area2D>("Hook_Mechanism");
-        var directionToHook = hook.Position - minnow.Position;
-        var chasingHook = !hook_is_at_rod() && directionToHook.Length() <= MinnowAggroDistance;
-
-        if (chasingHook)
-        {
-            var chaseDirection = directionToHook.Normalized();
-            var aggroSpeed = (float)data["aggro_speed"];
-            minnow.Position += chaseDirection * aggroSpeed * delta;
-            minnow.Position = new Vector2(
-                Mathf.Clamp(minnow.Position.X, 80.0f, 1200.0f),
-                Mathf.Clamp(minnow.Position.Y, WaterTop + 20.0f, WaterBottom - 10.0f)
-            );
-            return;
-        }
-
-        var speed = (float)data["speed"];
-        var phase = (float)data["phase"];
-        var direction = (float)data["direction"];
-        minnow.Position = new Vector2(
-            WrapFishX(minnow.Position.X + speed * direction * delta, direction),
-            _fishBaseY[minnow.Name.ToString()] + Mathf.Sin(elapsed * 3.3f + phase) * 12.0f
-        );
-    }
-
-    private void UpdateObstacleMotion(Area2D obstacleFish, Dictionary data, float elapsed, float delta)
-    {
-        var hook = GetNode<Area2D>("Hook_Mechanism");
-        var directionToHook = hook.Position - obstacleFish.Position;
-        var chasingHook = !hook_is_at_rod() && directionToHook.Length() <= ObstacleAggroDistance;
-
-        if (chasingHook)
-        {
-            var chaseDirection = directionToHook.Normalized();
-            var aggroSpeed = (float)data["aggro_speed"];
-            obstacleFish.Position += chaseDirection * aggroSpeed * delta;
-            obstacleFish.Position = new Vector2(
-                Mathf.Clamp(obstacleFish.Position.X, 80.0f, 1200.0f),
-                Mathf.Clamp(obstacleFish.Position.Y, WaterTop + 20.0f, WaterBottom - 10.0f)
-            );
-            return;
-        }
-
-        var speed = (float)data["speed"];
-        var phase = (float)data["phase"];
-        var direction = (float)data["direction"];
-        obstacleFish.Position = new Vector2(
-            WrapFishX(obstacleFish.Position.X + speed * direction * delta, direction),
-            _fishBaseY[obstacleFish.Name.ToString()] + Mathf.Sin(elapsed * 2.6f + phase) * 18.0f
-        );
-    }
-
-    private void InitializeMainFishSpawns()
-    {
-        var activeCount = 0;
-        foreach (var fish in _mainFishNodes)
-        {
-            var fishName = fish.Name.ToString();
-            if (activeCount < MaxActiveMainFish)
-            {
-                SpawnFishNow(fish);
-                activeCount += 1;
-            }
-            else
-            {
-                DeactivateFish(fishName, GetRespawnDelayForFish(fishName));
-            }
-        }
-    }
-
-    private void ResetMainFishSpawns()
-    {
-        InitializeMainFishSpawns();
-    }
-
-    private void UpdateMainFishRespawns(float delta)
-    {
-        foreach (var fish in _mainFishNodes)
-        {
-            var fishName = fish.Name.ToString();
-            if (_fishActiveStates[fishName])
-            {
-                continue;
-            }
-
-            _fishRespawnTimers[fishName] -= delta;
-            if (_fishRespawnTimers[fishName] > 0.0f)
-            {
-                continue;
-            }
-
-            if (CountActiveMainFish() >= MaxActiveMainFish)
-            {
-                _fishRespawnTimers[fishName] = 0.6f;
-                continue;
-            }
-
-            SpawnFishNow(fish);
-        }
-    }
-
-    private void SpawnFishNow(Area2D fish)
-    {
-        var fishName = fish.Name.ToString();
-        var data = _fishMotionData[fishName];
-        var direction = (float)data["direction"];
-        var spawnFromLeft = direction > 0.0f;
-        fish.Position = new Vector2(
-            spawnFromLeft ? -70.0f : 1350.0f,
-            (float)GD.RandRange(150.0f, 560.0f)
-        );
-        _fishBaseY[fishName] = fish.Position.Y;
-        _fishRespawnTimers[fishName] = 0.0f;
-        _fishActiveStates[fishName] = true;
-        SetFishVisible(fish, true);
-    }
-
-    private void DeactivateFish(string fishName, float respawnDelay)
-    {
-        var fish = GetNode<Area2D>($"FishContainer/{fishName}");
-        _fishActiveStates[fishName] = false;
-        _fishRespawnTimers[fishName] = respawnDelay;
-        SetFishVisible(fish, false);
-    }
-
-    private static void SetFishVisible(Area2D fish, bool visible)
-    {
-        fish.Visible = visible;
-        fish.GetNode<CollisionShape2D>("CollisionShape2D").Disabled = !visible;
-    }
-
-    private int CountActiveMainFish()
-    {
-        var count = 0;
-        foreach (var fish in _mainFishNodes)
-        {
-            if (_fishActiveStates[fish.Name.ToString()])
-            {
-                count += 1;
-            }
-        }
-
-        return count;
-    }
-
-    private float GetRespawnDelayForFish(string fishName)
-    {
-        return fishName switch
-        {
-            "FishGold" => (float)GD.RandRange(5.0f, 8.0f),
-            "FishGreen" => (float)GD.RandRange(4.0f, 6.5f),
-            "FishBlue" => (float)GD.RandRange(2.1f, 3.8f),
-            "FishGray" => (float)GD.RandRange(1.8f, 3.3f),
-            _ => (float)GD.RandRange(1.0f, 2.3f),
-        };
-    }
-
     private void ApplyLureSteer(Area2D hook, float delta)
     {
         var mouseX = Mathf.Clamp(GetViewport().GetMousePosition().X, 100.0f, 1180.0f);
         var centerBias = (mouseX - 640.0f) / 540.0f;
-        var desiredX = hook.Position.X + centerBias * MaxSteerOffset;
-        var maxStep = LureSteerSpeed * delta;
-        var steeredX = Mathf.MoveToward(hook.Position.X, desiredX, maxStep);
+        var desiredX = hook.Position.X + centerBias * 18.0f;
+        var steeredX = Mathf.MoveToward(hook.Position.X, desiredX, 90.0f * delta);
         hook.Position = new Vector2(Mathf.Clamp(steeredX, 80.0f, 1200.0f), hook.Position.Y);
     }
 

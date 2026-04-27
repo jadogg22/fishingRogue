@@ -1,19 +1,22 @@
 using Godot;
 using Godot.Collections;
+using System.Collections.Generic;
 
 public partial class GameManager : Control
 {
     private const int StartingPlayerHp = 30;
-    private const int StartingBossHp = 40;
     private const int FishingRoundsPerCombat = 3;
 
     private int _playerHp = StartingPlayerHp;
-    private int _bossHp = StartingBossHp;
-    private int _battleNumber = 1;
+    private int _bossHp;
+    private int _combatRoundNumber = 1;
     private int _fishingRoundNumber = 1;
-    private Array<Dictionary> _currentHand = new();
+    private int _currentBossIndex;
+    private int _gold;
+    private readonly List<CardData> _currentHand = new();
     private Array<Dictionary> _bossStatuses = new();
     private Array<Dictionary> _playerStatuses = new();
+    private List<BossDefinition> _bosses = new();
     private Node? _activePhase;
 
     public override void _Ready()
@@ -23,11 +26,14 @@ public partial class GameManager : Control
 
     private void StartRun()
     {
+        _bosses = BossDatabase.BuildActOneBosses();
         _playerHp = StartingPlayerHp;
-        _bossHp = StartingBossHp;
-        _battleNumber = 1;
+        _currentBossIndex = 0;
+        _bossHp = CurrentBoss.MaxHp;
+        _combatRoundNumber = 1;
         _fishingRoundNumber = 1;
-        _currentHand = new Array<Dictionary>();
+        _gold = 0;
+        _currentHand.Clear();
         _bossStatuses = new Array<Dictionary>();
         _playerStatuses = new Array<Dictionary>();
         ShowFishingPhase();
@@ -47,7 +53,7 @@ public partial class GameManager : Control
         var fishingScene = GD.Load<PackedScene>("res://scenes/FishingScene.tscn").Instantiate<FishingScene>();
         _activePhase = fishingScene;
         GetNode<Control>("PhaseContainer").AddChild(fishingScene);
-        fishingScene.StartRound(_playerHp, _fishingRoundNumber);
+        fishingScene.StartRound(_playerHp, _fishingRoundNumber, CurrentBoss.Name, _gold);
         fishingScene.FishCaught += OnFishCaught;
     }
 
@@ -57,7 +63,7 @@ public partial class GameManager : Control
         var combatScene = GD.Load<PackedScene>("res://scenes/CombatScene.tscn").Instantiate<CombatScene>();
         _activePhase = combatScene;
         GetNode<Control>("PhaseContainer").AddChild(combatScene);
-        combatScene.SetupRound(_playerHp, StartingPlayerHp, _bossHp, StartingBossHp, _currentHand, _playerStatuses, _bossStatuses, _battleNumber);
+        combatScene.SetupRound(_playerHp, StartingPlayerHp, _bossHp, _currentHand, _playerStatuses, _bossStatuses, CurrentBoss, _combatRoundNumber, _gold);
         combatScene.RoundFinished += OnRoundFinished;
     }
 
@@ -67,11 +73,12 @@ public partial class GameManager : Control
         var endScene = GD.Load<PackedScene>("res://scenes/EndScreen.tscn").Instantiate<EndScreen>();
         _activePhase = endScene;
         GetNode<Control>("PhaseContainer").AddChild(endScene);
-        endScene.Setup(victory, _playerHp, _bossHp, _battleNumber);
+        var clearedBosses = Mathf.Max(1, Mathf.Min(_currentBossIndex + 1, _bosses.Count));
+        endScene.Setup(victory, _playerHp, _bossHp, clearedBosses);
         endScene.RestartRequested += OnRestartRequested;
     }
 
-    private void OnFishCaught(Dictionary cardData)
+    private void OnFishCaught(CardData cardData)
     {
         _currentHand.Add(cardData);
 
@@ -94,7 +101,21 @@ public partial class GameManager : Control
 
         if (_bossHp <= 0)
         {
-            ShowEndScreen(true);
+            _gold += CurrentBoss.RewardGold;
+            _currentBossIndex += 1;
+
+            if (_currentBossIndex >= _bosses.Count)
+            {
+                ShowEndScreen(true);
+                return;
+            }
+
+            _bossHp = CurrentBoss.MaxHp;
+            _bossStatuses = new Array<Dictionary>();
+            _combatRoundNumber = 1;
+            _fishingRoundNumber = 1;
+            _currentHand.Clear();
+            ShowFishingPhase();
             return;
         }
 
@@ -104,7 +125,7 @@ public partial class GameManager : Control
             return;
         }
 
-        _battleNumber += 1;
+        _combatRoundNumber += 1;
         _fishingRoundNumber = 1;
         _currentHand.Clear();
         ShowFishingPhase();
@@ -114,4 +135,6 @@ public partial class GameManager : Control
     {
         StartRun();
     }
+
+    private BossDefinition CurrentBoss => _bosses[_currentBossIndex];
 }

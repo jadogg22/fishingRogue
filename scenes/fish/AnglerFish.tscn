@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/Fish.cs" id="1_angler"]
+[ext_resource type="Texture2D" path="res://assets/octopus-jellyfish-shark-and-turtle-free-sprite-pixel-art/angler/Walk.png" id="2_angler_tex"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_angler"]
+size = Vector2(72, 30)
+
+[node name="AnglerFish" type="Area2D"]
+script = ExtResource("1_angler")
+SwimTexture = ExtResource("2_angler_tex")
+FrameWidth = 48
+VisualScale = 1.55
+Speed = 205.0
+SineFrequency = 2.5
+SineAmplitude = 18.0
+SinePhase = 0.5
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_angler")
+
+[node name="Visual" type="Polygon2D" parent="."]
+visible = false
